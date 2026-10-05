@@ -72,7 +72,7 @@ export const publicLocationTrends = [
   },
   {
     id: 'srinagar',
-    name: 'Srinagar',
+    name: 'Srinagar District',
     region: 'Jammu & Kashmir',
     indicator: 'Households with safe water within premises',
     unit: '%',
