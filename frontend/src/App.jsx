@@ -109,7 +109,6 @@ function App() {
         {[['overview', 'Overview', '◫'], ['usage', 'Water usage', '▤'], ['prediction', 'Prediction', '⌁']].map(([id, label, icon]) => <button className={`nav-item ${section === id ? 'active' : ''}`} key={id} onClick={() => { setSection(id); setError(''); setNotice('') }}><span>{icon}</span>{label}</button>)}
       </nav>
       <div className="sidebar-note"><div className="note-icon">♧</div><strong>Every drop counts</strong><p>Better planning starts with understanding when water is needed.</p></div>
-      <div className="sidebar-footer">BCS508 · Environmental Studies<br/>Local prototype · ₹0 cost</div>
     </aside>
 
     <main className="main-content">
@@ -154,7 +153,6 @@ function App() {
             <section className="panel recent-panel"><div className="panel-heading"><div><h2>Previous predictions</h2><p>Saved prediction history</p></div></div>{predictions.length ? <div className="table-scroll"><table><thead><tr><th>Prediction date</th><th>Estimated demand</th><th>Status</th><th>Generated</th></tr></thead><tbody>{predictions.map((item) => <tr key={item.id}><td>{item.predictionDate}</td><td>{number(item.predictedDemandLitres)} L</td><td><span className={`status-badge ${item.demandStatus.toLowerCase()}`}>{item.demandStatus}</span></td><td>{new Date(item.createdAt).toLocaleString()}</td></tr>)}</tbody></table></div> : <p className="table-empty">Predictions will appear here after generation.</p>}</section></> : <PublicCityPrediction location={selectedLocation} />}
           </>}
         </>}
-        <footer className="page-footer">AI-Based Water Demand Prediction and Conservation System <span>•</span> BCS508 Semester V</footer>
       </div>
     </main>
   </div>
@@ -213,7 +211,6 @@ function PublicCityPrediction({ location }) {
       </section>
       <section className="panel result-panel city-result-panel"><div className="panel-heading"><div><h2>Daily demand prediction</h2><p>{result ? `For ${result.predictionDate}` : 'Submit conditions to calculate a city estimate'}</p></div></div>{result ? <><div className="result-number">{number(result.predictedDemandLitres)} <span>litres / day</span></div><div className="city-result-conversions">{number(result.predictedDemandLitres / 1_000_000)} MLD · baseline {number(result.baselineLitres)} L/day</div><div className="result-status-row"><span>Demand status vs baseline</span><span className={`status-badge ${result.demandStatus.toLowerCase()}`}>{result.demandStatus}</span></div><div className="advice-box"><strong>Conservation recommendation</strong><p>{result.demandStatus === 'HIGH' ? 'The estimate is over 10% above the population baseline. Review high-use activities, check for possible leaks, and plan non-essential water use carefully.' : 'The estimate is within 10% of the population baseline. Continue monitoring use and avoid unnecessary water consumption.'}</p></div></> : <div className="empty-result"><span>⌁</span><p>Choose the expected conditions and select Predict city demand to see the result for {location.name}.</p></div>}</section>
     </div>
-    <p className="city-prediction-caveat">This is a transparent planning scenario estimate based on public population and a service benchmark. It is not measured consumption or a city-specific ML model trained on historical daily observations. Local prototype predictions continue to use the saved building records.</p>
   </div>
 }
 
