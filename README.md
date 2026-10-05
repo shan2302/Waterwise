@@ -6,7 +6,7 @@ This project is a local web application for estimating future water demand. It c
 
 The system is a decision-support prototype. It does not control water supply. **This prototype does not require any physical hardware. It uses historical/sample data and runs locally on a computer.** The included records are sample data for demonstration, not measurements collected by the project team.
 
-The Overview has a location selector for India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, and Kolkata. Selecting a place updates the published-data chart and summary cards. Sources use different measures: some report water supply, some report infrastructure capacity or household access, and India reports water availability per person. The dashboard labels each measure and links to its source. These public figures are separate from the building sample records and are not used by the prediction model.
+The Overview has a location selector for India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, and Kolkata. Selecting a place updates the chart and summary cards. Each public location now shows at least two dated source records; most show three or more. The Water Usage page shows each period, value, measure, and its source link. Sources use different measures, including city supply, system capacity, estimated demand, household access, and per-person water availability. These public figures are separate from the building sample records and are not used by the prediction model.
 
 ## 2. Environmental Problem
 
@@ -94,9 +94,9 @@ Each water-use record contains its date, consumption in litres, temperature in �
 - **Public datasets:** Public historical water-use records can replace or supplement the demonstration records.
 - **Weather/environment datasets:** Public weather and environmental datasets can provide temperature and rainfall inputs.
 - **Sample/seed data:** The app inserts clearly illustrative sample records when the database has no usage records. These make the prototype demonstrable without claiming field collection.
-- **Published location records:** The Overview lets the user select India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, or Kolkata. Delhi and Mumbai have several reporting periods; several other locations have only one published value. The chart and cards use the selected source values, and identify the source's measure, period, and unit. A single published value is not presented as a daily high/low series. These records are not training rows for the building-level prediction.
+- **Published location records:** India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, and Kolkata each show at least two sourced periods. The Water Usage page lists records with links to their sources. The measures differ by location and must not be compared as if they were all household consumption. These records are not training rows for the building-level prediction.
 
-The public figures come from these sources: [Central Water Commission estimates reported by the Ministry of Jal Shakti](https://www.pib.gov.in/newsite/PrintRelease.aspx?lang=2&reg=48&relid=195633); [Muzaffarpur Water Supply Service Level Improvement Plan](https://rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf); [CAG audit of Delhi Jal Board](https://cag.gov.in/uploads/download_audit_report/2025/Delhi_PA-Report-on-3_DJB_English-069c2836793c603.23213132.pdf); [Praja report citing BMC Environment Status Reports for Mumbai](https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf); [BWSSB](https://mybwssb.org/content/about-bwssb-0); [J&K Digest of Statistics 2023–24](https://jkplanning.gov.in/pdf/Digest%20of%20Statistics%202023-24.pdf); and [Kolkata Municipal Corporation](https://www.kmcgov.in/KMCPortal/jsp/BasicStatistics.jsp). The location selector uses fixed public records bundled with the frontend, so it works without a paid service or internet API.
+Published figures are linked to the [Central Water Commission estimates reported by the Ministry of Jal Shakti](https://www.pib.gov.in/newsite/PrintRelease.aspx?lang=2&reg=48&relid=195633), a [Muzaffarpur water access study](https://marudhara.ac.in/wp-content/uploads/2021/12/Examining-acess-to-safe-drinking-water.pdf), the [AMRUT Muzaffarpur service plan](https://www.rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf), the [CAG audit of Delhi Jal Board](https://cag.gov.in/uploads/download_audit_report/2025/Delhi_PA-Report-on-3_DJB_English-069c2836793c603.23213132.pdf), a [Praja report citing BMC Environment Status Reports for Mumbai](https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf), an [IISc Bengaluru water situation report](https://wgbis.ces.iisc.ac.in/energy/water/paper/ETR114/section8.html), [Ministry of Jal Shakti reports for Srinagar](https://www.pib.gov.in/PressReleasePage.aspx?PRID=1681481) and a [J&K Jal Jeevan Survekshan report](https://www.jkpi.org/wp-content/uploads/2023/10/Inksight_AugSept_2023_compressed.pdf), and [Kolkata Municipal Corporation historical supply figures](https://www.kmc.gov.in/KMCPortal/jsp/IndiraGandhi.jsp). The fixed records are bundled with the frontend, so no internet API is needed to view them.
 
 ## 9. Input → Processing → Output
 
@@ -144,7 +144,7 @@ Historical Data → Prediction Service → Prediction Result → React Dashboard
 
 ## 13. Frontend
 
-The Overview location dropdown updates the summary cards and chart for the selected public dataset. Choose “My local prototype records” to see total, average, highest, and lowest saved building consumption. Public locations show the indicator and units reported by their source; their values may describe city supply, capacity, or water availability instead of consumption. The latest building prediction remains based on local prototype records. The Water Usage section lists records and provides a form to add one. The Prediction section accepts a date, temperature, rainfall, and occupancy, then displays predicted litres, status, and recommendation.
+The location selector is shared by Overview, Water Usage, and Prediction. Overview updates the chart and summary cards. Water Usage lists the selected public records with period-specific source links, or lets the user view and add local building records. Prediction uses the local prototype records because the public city summaries do not contain matching daily consumption, weather, and occupancy inputs. When a public location is selected, the page explains this and offers a button to switch to the local records. The prediction form accepts a date, temperature, rainfall, and occupancy, then displays predicted litres, status, and recommendation.
 
 ## 14. Prediction Logic
 
@@ -199,21 +199,19 @@ Then provide that same password as the `DB_PASSWORD` environment variable when s
 2. Start Spring Boot from the `backend` folder.
 3. Start React from the `frontend` folder.
 4. Open `http://localhost:5173`.
-5. Show the dashboard and summary cards.
-6. Show historical water consumption and its chart.
-7. Add a water usage record.
-8. Open the prediction form.
-9. Enter a prediction date, temperature, rainfall, and occupancy.
-10. Generate a prediction.
-11. Show the predicted demand in litres.
-12. Show the NORMAL/HIGH status.
-13. Show the conservation recommendation.
-14. Explain the Input → Processing → Output flow.
+5. **Rishi:** Introduce the water demand problem and explain that the prototype uses public location reports and local sample records.
+6. **Rishi:** Show Overview. Select Muzaffarpur, India, Mumbai, and one other location. Point out the 2–5 dated chart records and the unit/source measure. Mention that supply, capacity, access, and per-person availability are different indicators.
+7. **Rishi:** Open Water Usage, select a public location, and show the dated record table and source links. Then switch to “My local prototype records” and show the illustrative building records.
+8. **Umar:** Add a new local water usage record with date, litres, temperature, rainfall, and occupancy. Explain that it is stored in local MySQL.
+9. **Umar:** Open Prediction, keep “My local prototype records” selected, and enter a date, expected temperature, rainfall, and occupancy.
+10. **Umar:** Generate the prediction. Show the estimated demand in litres, NORMAL/HIGH status, and conservation recommendation.
+11. **Umar:** Explain the flow: input data is validated and stored or combined with historical data; the backend estimates demand; the page displays the result and advice.
+12. **Both:** State the limits: the prototype uses sample/public summary data, has no physical sensors, and does not control supply. Public city summaries do not provide the matching daily weather and occupancy fields required for local prediction.
 
 ## 20. Project Limitations
 
 - The included historical records are sample data; prediction quality depends on having enough representative data.
-- Published location figures have different reporting periods and indicators. A few locations have only one published figure, and India’s data is per-capita water availability rather than city consumption. They are shown with clear labels and are not mixed into prediction training.
+- Published location figures have different reporting periods and indicators. For example, Muzaffarpur's 2009 reported supply and later system capacity are not identical measures; Bengaluru's figures are calculated demand estimates, with later projections; and Srinagar's records describe tap-water access rather than consumption. India’s data is per-capita water availability. Labels and notes explain these differences, and public values are not mixed into prediction training.
 - The prototype does not directly measure water through physical sensors.
 - Prediction accuracy depends on data quality and quantity.
 - It does not physically detect leaks or control water supply.
