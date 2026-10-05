@@ -1,0 +1,3 @@
+location,period,indicator,value,unit,scope,source
+Bengaluru Metropolitan Area,2020-21,Average water received by BWSSB,1227,MLD,City-wide utility supply,https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf
+Bengaluru Metropolitan Area,2020-21,Designed treated-water capacity across Cauvery Water Supply Scheme stages,1445,MLD,Infrastructure capacity (not actual daily consumption),https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf
