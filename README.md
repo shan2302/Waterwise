@@ -6,7 +6,7 @@ This project is a local web application for estimating future water demand. It c
 
 The system is a decision-support prototype. It does not control water supply. **This prototype does not require any physical hardware. It uses historical/sample data and runs locally on a computer.** The included records are sample data for demonstration, not measurements collected by the project team.
 
-The dashboard also shows verified, city-wide water-supply figures for the **Bengaluru Metropolitan Area, Karnataka**. The BWSSB Annual Report 2020–21 reports an average 1,227 MLD received during that year and a designed treated-water capacity of 1,445 MLD. These city-wide figures provide local context; they are not building-level consumption records and are not used by the prediction model. The source values are included in `data/bengaluru_city_water_context.csv`.
+The dashboard also shows publicly reported water facts for Bengaluru, Muzaffarpur, Delhi, Mumbai, and Srinagar District in Jammu & Kashmir. The facts use different measures and periods, such as water supplied, infrastructure capacity, seasonal production, and household access. They provide location context only; they are not combined with the sample building records or used by the prediction model. Sources and notes are in `data/public_city_water_context.csv`.
 
 ## 2. Environmental Problem
 
@@ -94,7 +94,9 @@ Each water-use record contains its date, consumption in litres, temperature in �
 - **Public datasets:** Public historical water-use records can replace or supplement the demonstration records.
 - **Weather/environment datasets:** Public weather and environmental datasets can provide temperature and rainfall inputs.
 - **Sample/seed data:** The app inserts clearly illustrative sample records when the database has no usage records. These make the prototype demonstrable without claiming field collection.
-- **Published Bengaluru data:** The dashboard presents BWSSB's reported average water received (1,227 MLD) and designed treated-water capacity (1,445 MLD) for the Bengaluru Metropolitan Area. The first is a reported city-wide supply figure for 2020–21; the second is system capacity, not consumption. Both are context only and are excluded from building-level prediction. Source: [BWSSB Annual Report 2020–21, Karnataka Legislative Council](https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf). The values are also in `data/bengaluru_city_water_context.csv`.
+- **Published location context:** The dashboard shows reported figures for Bengaluru, Muzaffarpur, Delhi, Mumbai, and Srinagar District. These include city supply/capacity, seasonal production, demand estimate, and household water-access coverage. Since these indicators differ, each is labeled with its period, measure, units, and source; they are not training rows for the building-level prediction. Source links are shown in the dashboard and listed in `data/public_city_water_context.csv`.
+
+The public figures come from these reports: [BWSSB Annual Report 2020–21](https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf); [Muzaffarpur Water Supply Service Level Improvement Plan](https://rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf); [Delhi Economic Survey 2023–24 highlights](https://delhiplanning.delhi.gov.in/sites/default/files/Planning/highlights_of_delhi_es_2023-24_english.pdf); [Praja report using BMC Environment Status Reports and RTI data for Mumbai](https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf); and [J&K Digest of Statistics 2023–24](https://jkplanning.gov.in/pdf/Digest%20of%20Statistics%202023-24.pdf).
 
 ## 9. Input → Processing → Output
 
@@ -211,7 +213,7 @@ Then provide that same password as the `DB_PASSWORD` environment variable when s
 ## 20. Project Limitations
 
 - The included historical records are sample data; prediction quality depends on having enough representative data.
-- The published Bengaluru figures describe city-wide utility supply/capacity, not daily consumption at a specific building, so they are not mixed into prediction training.
+- The published location figures are from different years and report different indicators. They give context only and are not mixed into prediction training.
 - The prototype does not directly measure water through physical sensors.
 - Prediction accuracy depends on data quality and quantity.
 - It does not physically detect leaks or control water supply.
