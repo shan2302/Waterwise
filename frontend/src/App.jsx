@@ -66,19 +66,26 @@ function App() {
       ['Highest day', `${number(summary?.highestConsumption)} L`, 'Highest saved daily use'],
       ['Lowest day', `${number(summary?.lowestConsumption)} L`, 'Lowest saved daily use'],
     ]
-    : selectedLocation.id === 'india'
+      : selectedLocation.id === 'india'
       ? [
         ['Latest annual availability', `${number(latestLocationValue?.value)} ${selectedLocation.unit}`, latestLocationValue?.period || ''],
         ['Average reported', `${number(locationAverage)} ${selectedLocation.unit}`, `${locationValues.length} published estimates`],
         ['Highest estimate', `${number(Math.max(...locationValues))} ${selectedLocation.unit}`, selectedLocation.indicator],
         ['Lowest estimate', `${number(Math.min(...locationValues))} ${selectedLocation.unit}`, selectedLocation.indicator],
       ]
-      : [
-        [`${selectedLocation.records.length > 1 ? 'Latest reported' : 'Reported value'}`, `${number(latestLocationValue?.value)} ${selectedLocation.unit}`, `${latestLocationValue?.period || ''} · ${selectedLocation.indicator}`],
-        ['Average reported', `${number(locationAverage)} ${selectedLocation.unit}`, `${locationValues.length} published value${locationValues.length === 1 ? '' : 's'}`],
-        ['Highest reported', `${number(Math.max(...locationValues))} ${selectedLocation.unit}`, 'Within the published records'],
-        ['Lowest reported', `${number(Math.min(...locationValues))} ${selectedLocation.unit}`, 'Within the published records'],
-      ]
+      : selectedLocation.records.length === 1
+        ? [
+          ['Published value', `${number(latestLocationValue?.value)} ${selectedLocation.unit}`, `${latestLocationValue?.period || ''} · ${selectedLocation.indicator}`],
+          ['Available records', '1', 'Only one value is published for this location'],
+          ['Trend over time', 'Unavailable', 'A second reporting period is needed'],
+          ['Daily consumption', 'Not reported', 'The source reports a different indicator'],
+        ]
+        : [
+          ['Latest reported', `${number(latestLocationValue?.value)} ${selectedLocation.unit}`, `${latestLocationValue?.period || ''} · ${selectedLocation.indicator}`],
+          ['Average reported', `${number(locationAverage)} ${selectedLocation.unit}`, `${locationValues.length} published values`],
+          ['Highest reported', `${number(Math.max(...locationValues))} ${selectedLocation.unit}`, 'Within the published records'],
+          ['Lowest reported', `${number(Math.min(...locationValues))} ${selectedLocation.unit}`, 'Within the published records'],
+        ]
 
   return <div className="app-shell">
     <aside className="sidebar">
@@ -101,8 +108,8 @@ function App() {
             <div className="page-heading"><div><div className="eyebrow">WATER RESOURCE MONITORING</div><h1>Overview</h1><p>Choose a place to view its published water data and trend.</p></div><button className="primary-button" onClick={() => setSection('prediction')}>Generate prediction <span>→</span></button></div>
             <section className="location-filter panel"><label htmlFor="location-select"><span className="eyebrow">LOCATION / DATASET</span><strong>View overview for</strong></label><select id="location-select" value={selectedLocationId} onChange={(event) => setSelectedLocationId(event.target.value)}><option value="local">My local prototype records</option>{publicLocationTrends.map((item) => <option value={item.id} key={item.id}>{item.name}{item.region ? `, ${item.region}` : ''}</option>)}</select></section>
             <div className="stat-grid">{summaryCards.map(([label, value, helper], index) => <article className="stat-card" key={label}><div className="stat-label">{label}<span className="stat-glyph">{['◉', '∿', '↗', '↘'][index]}</span></div><div className="stat-value">{value}</div><div className="stat-helper">{helper}</div></article>)}</div>
-            <div className="overview-grid"><section className="panel chart-panel"><div className="panel-heading"><div><h2>{selectedLocationId === 'local' ? 'Historical water consumption' : `${selectedLocation.name}: published water data`}</h2><p>{selectedLocationId === 'local' ? 'Daily use across the most recent 14 records' : selectedLocation.indicator}</p></div><span className="small-tag">{selectedLocationId === 'local' ? 'LITRES' : selectedLocation.unit}</span></div>{selectedLocationId === 'local' ? <UsageChart records={chartRecords}/> : <LocationTrendChart location={selectedLocation}/>}</section>
-              <section className="panel prediction-panel"><div className="panel-heading"><div><h2>Latest prediction</h2><p>Most recent demand estimate</p></div><span className="water-icon">⌁</span></div>{latest ? <><div className="latest-date">{latest.predictionDate}</div><div className="latest-value">{number(latest.predictedDemandLitres)} <span>L</span></div><span className={`status-badge ${latest.demandStatus.toLowerCase()}`}>{latest.demandStatus} DEMAND</span><p className="recommendation">{latest.recommendation}</p></> : <div className="empty-state"><p>No prediction yet.</p><button className="text-button" onClick={() => setSection('prediction')}>Create your first prediction →</button></div>}</section>
+            <div className="overview-grid"><section className="panel chart-panel"><div className="panel-heading"><div><h2>{selectedLocationId === 'local' ? 'Historical water consumption' : `${selectedLocation.name}: published water data`}</h2><p>{selectedLocationId === 'local' ? 'Daily use across the most recent 14 records' : `${selectedLocation.indicator}${selectedLocation.records.length === 1 ? ' · One published value; no time trend is available' : ''}`}</p></div><span className="small-tag">{selectedLocationId === 'local' ? 'LITRES' : selectedLocation.unit}</span></div>{selectedLocationId === 'local' ? <UsageChart records={chartRecords}/> : <LocationTrendChart location={selectedLocation}/>}</section>
+              {selectedLocationId === 'local' ? <section className="panel prediction-panel"><div className="panel-heading"><div><h2>Latest prediction</h2><p>Estimate from local building records</p></div><span className="water-icon">⌁</span></div>{latest ? <><div className="latest-date">{latest.predictionDate}</div><div className="latest-value">{number(latest.predictedDemandLitres)} <span>L</span></div><span className={`status-badge ${latest.demandStatus.toLowerCase()}`}>{latest.demandStatus} DEMAND</span><p className="recommendation">{latest.recommendation}</p></> : <div className="empty-state"><p>No prediction yet.</p><button className="text-button" onClick={() => setSection('prediction')}>Create your first prediction →</button></div>}</section> : <section className="panel prediction-panel"><div className="panel-heading"><div><h2>Prediction scope</h2><p>How this location data is used</p></div><span className="water-icon">i</span></div><p className="recommendation">This chart summarizes published location data. It is not used as building-level consumption. Demand predictions use records saved in the local prototype.</p><button className="text-button" onClick={() => setSelectedLocationId('local')}>View local prototype data →</button></section>}
             </div>
             {selectedLocationId !== 'local' && <section className="panel city-data-panel"><div className="panel-heading"><div><div className="eyebrow">{selectedLocation.name.toUpperCase()} · {selectedLocation.region.toUpperCase()}</div><h2>{selectedLocation.indicator}</h2><p>{selectedLocation.note}</p></div><span className="small-tag">PUBLIC SOURCE</span></div><p className="city-data-note">Source: <a className="source-link" href={selectedLocation.sourceUrl} target="_blank" rel="noreferrer">{selectedLocation.sourceLabel} ↗</a></p><p className="city-data-note">These published values use the source's reporting periods. The prediction form continues to use the local prototype's building records.</p></section>}
             {selectedLocationId === 'local' && <section className="panel recent-panel"><div className="panel-heading"><div><h2>Recent usage records</h2><p>Latest saved observations</p></div><button className="text-button" onClick={() => setSection('usage')}>View all records →</button></div><UsageTable records={records.slice(-5).reverse()}/></section>}
