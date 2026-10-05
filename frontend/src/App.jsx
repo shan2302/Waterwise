@@ -151,7 +151,7 @@ function App() {
               <div className="form-actions"><button className="primary-button" disabled={saving}>{saving ? 'Calculating…' : 'Generate prediction'}</button></div>
             </form><div className="model-note"><span>⌁</span><p><strong>How it works</strong><br/>A simple regression model uses saved historical records. Estimates are compared with the historical average.</p></div></section>
               <section className="panel result-panel"><div className="panel-heading"><div><h2>Prediction result</h2><p>{latest ? `For ${latest.predictionDate}` : 'Your result will appear here'}</p></div></div>{latest ? <><div className="result-number">{number(latest.predictedDemandLitres)} <span>litres</span></div><div className="result-status-row"><span>Demand status</span><span className={`status-badge ${latest.demandStatus.toLowerCase()}`}>{latest.demandStatus}</span></div><div className="advice-box"><strong>Conservation recommendation</strong><p>{latest.recommendation}</p></div><div className="threshold-note">HIGH means the estimate is over 10% above the historical average.</div></> : <div className="empty-result"><span>⌁</span><p>Enter the expected conditions and generate a prediction to see the estimated demand and conservation guidance.</p></div>}</section></div>
-            <section className="panel recent-panel"><div className="panel-heading"><div><h2>Previous predictions</h2><p>Saved prediction history</p></div></div>{predictions.length ? <div className="table-scroll"><table><thead><tr><th>Prediction date</th><th>Estimated demand</th><th>Status</th><th>Generated</th></tr></thead><tbody>{predictions.map((item) => <tr key={item.id}><td>{item.predictionDate}</td><td>{number(item.predictedDemandLitres)} L</td><td><span className={`status-badge ${item.demandStatus.toLowerCase()}`}>{item.demandStatus}</span></td><td>{new Date(item.createdAt).toLocaleString()}</td></tr>)}</tbody></table></div> : <p className="table-empty">Predictions will appear here after generation.</p>}</section></> : <><PlanningEstimate location={selectedLocation} /><section className="public-prediction-view panel"><div className="eyebrow">CITY DAILY PLANNING ESTIMATE</div><h2>{selectedLocation.name}: reference demand only</h2><p>This population-based planning estimate is not a measured daily consumption value or an AI/ML prediction. The public records do not provide the matching daily consumption, weather, rainfall, and occupancy history required by the model. Choose local prototype records to generate an AI/ML estimate from the saved building data.</p><button className="primary-button" onClick={() => setSelectedLocationId('local')}>Use local prototype records</button></section></>}
+            <section className="panel recent-panel"><div className="panel-heading"><div><h2>Previous predictions</h2><p>Saved prediction history</p></div></div>{predictions.length ? <div className="table-scroll"><table><thead><tr><th>Prediction date</th><th>Estimated demand</th><th>Status</th><th>Generated</th></tr></thead><tbody>{predictions.map((item) => <tr key={item.id}><td>{item.predictionDate}</td><td>{number(item.predictedDemandLitres)} L</td><td><span className={`status-badge ${item.demandStatus.toLowerCase()}`}>{item.demandStatus}</span></td><td>{new Date(item.createdAt).toLocaleString()}</td></tr>)}</tbody></table></div> : <p className="table-empty">Predictions will appear here after generation.</p>}</section></> : <PublicCityPrediction location={selectedLocation} />}
           </>}
         </>}
         <footer className="page-footer">AI-Based Water Demand Prediction and Conservation System <span>•</span> BCS508 Semester V</footer>
@@ -166,6 +166,55 @@ function PlanningEstimate({ location }) {
   const litresPerDay = location.planningPopulation * 135
   const mld = litresPerDay / 1_000_000
   return <section className="panel planning-estimate"><div><div className="eyebrow">{location.name.toUpperCase()} · PLANNING REFERENCE</div><h2>{number(mld)} MLD</h2><p>{number(litresPerDay)} litres per day</p></div><div className="planning-estimate-details"><strong>Estimated domestic demand baseline</strong><span>Formula: {number(location.planningPopulation)} people × 135 litres/person/day.</span><span>Population: {location.planningPopulationLabel}. Population boundaries can differ between locations.</span><span>This is a planning estimate, not measured consumption, actual supply, or an AI/ML forecast.</span><span>Sources: <a className="source-link" href={location.planningPopulationSourceUrl} target="_blank" rel="noreferrer">{location.planningPopulationSource} ↗</a> · <a className="source-link" href="https://cpheeo.gov.in/upload/uploadfiles/files/Handbook.pdf" target="_blank" rel="noreferrer">CPHEEO 135 LPCD benchmark ↗</a></span></div></section>
+}
+
+function PublicCityPrediction({ location }) {
+  const [inputs, setInputs] = useState({ predictionDate: today, temperature: '25', rainfall: '0', occupancy: String(location.planningPopulation) })
+  const [result, setResult] = useState(null)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    setInputs({ predictionDate: today, temperature: '25', rainfall: '0', occupancy: String(location.planningPopulation) })
+    setResult(null)
+    setError('')
+  }, [location.id, location.planningPopulation])
+
+  function generatePrediction(event) {
+    event.preventDefault()
+    const people = Number(inputs.occupancy)
+    const temperature = Number(inputs.temperature)
+    const rainfall = Number(inputs.rainfall)
+    if (!people || people < 1 || !Number.isFinite(temperature) || !Number.isFinite(rainfall)) {
+      setError('Enter a population above zero, a valid temperature, and valid rainfall.')
+      return
+    }
+    const temperatureAdjustment = Math.max(-0.1, Math.min(0.2, (temperature - 25) * 0.01))
+    const rainfallAdjustment = Math.min(0.2, rainfall * 0.005)
+    const weatherFactor = Math.max(0.75, Math.min(1.2, 1 + temperatureAdjustment - rainfallAdjustment))
+    const baselineLitres = people * 135
+    const predictedDemandLitres = Math.round(baselineLitres * weatherFactor)
+    setError('')
+    setResult({ predictedDemandLitres, baselineLitres, demandStatus: predictedDemandLitres > baselineLitres * 1.1 ? 'HIGH' : 'NORMAL', predictionDate: inputs.predictionDate })
+  }
+
+  return <div className="city-prediction-page">
+    <PlanningEstimate location={location} />
+    <div className="city-prediction-layout">
+      <section className="panel form-panel"><div className="panel-heading"><div><div className="eyebrow">LOCATION-SPECIFIC ESTIMATE</div><h2>Predict {location.name} daily demand</h2><p>Adjust the expected conditions and population for your scenario.</p></div></div>
+        {error && <div className="alert error" role="alert">{error}</div>}
+        <form className="form-grid" onSubmit={generatePrediction}>
+          <Field label="Prediction date"><input type="date" required value={inputs.predictionDate} onChange={(event) => setInputs({ ...inputs, predictionDate: event.target.value })}/></Field>
+          <Field label="Expected temperature (°C)"><input type="number" required min="-20" max="60" step="any" value={inputs.temperature} onChange={(event) => setInputs({ ...inputs, temperature: event.target.value })}/></Field>
+          <Field label="Expected rainfall (mm)"><input type="number" required min="0" max="1000" step="any" value={inputs.rainfall} onChange={(event) => setInputs({ ...inputs, rainfall: event.target.value })}/></Field>
+          <Field label="People expected to use water"><input type="number" required min="1" max="1000000000" step="1" value={inputs.occupancy} onChange={(event) => setInputs({ ...inputs, occupancy: event.target.value })}/></Field>
+          <div className="form-actions"><button className="primary-button">Predict city demand</button></div>
+        </form>
+        <div className="model-note"><span>⌁</span><p><strong>How this city estimate works</strong><br/>Starts with 135 litres per person per day. For this demonstration, demand changes by 1% per °C above/below 25°C and falls 0.5% per mm of rain, within fixed limits. These simple weather adjustments are assumptions, not coefficients trained on city daily records.</p></div>
+      </section>
+      <section className="panel result-panel city-result-panel"><div className="panel-heading"><div><h2>Daily demand prediction</h2><p>{result ? `For ${result.predictionDate}` : 'Submit conditions to calculate a city estimate'}</p></div></div>{result ? <><div className="result-number">{number(result.predictedDemandLitres)} <span>litres / day</span></div><div className="city-result-conversions">{number(result.predictedDemandLitres / 1_000_000)} MLD · baseline {number(result.baselineLitres)} L/day</div><div className="result-status-row"><span>Demand status vs baseline</span><span className={`status-badge ${result.demandStatus.toLowerCase()}`}>{result.demandStatus}</span></div><div className="advice-box"><strong>Conservation recommendation</strong><p>{result.demandStatus === 'HIGH' ? 'The estimate is over 10% above the population baseline. Review high-use activities, check for possible leaks, and plan non-essential water use carefully.' : 'The estimate is within 10% of the population baseline. Continue monitoring use and avoid unnecessary water consumption.'}</p></div></> : <div className="empty-result"><span>⌁</span><p>Choose the expected conditions and select Predict city demand to see the result for {location.name}.</p></div>}</section>
+    </div>
+    <p className="city-prediction-caveat">This is a transparent planning scenario estimate based on public population and a service benchmark. It is not measured consumption or a city-specific ML model trained on historical daily observations. Local prototype predictions continue to use the saved building records.</p>
+  </div>
 }
 
 function LocationSelector({ value, onChange, description }) {

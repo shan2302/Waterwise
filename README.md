@@ -148,11 +148,13 @@ Historical Data → Prediction Service → Prediction Result → React Dashboard
 
 ## 13. Frontend
 
-The location selector is shared by Overview, Water Usage, and Prediction. Overview updates the chart and summary cards. For public locations, the app also displays a separate 135 LPCD population-based planning estimate with its formula, population scope, and source links. Water Usage lists the selected public records with period-specific source links, or lets the user view and add local building records. Prediction uses the local prototype records because the public city summaries do not contain matching daily consumption, weather, and occupancy inputs. When a public location is selected, the page shows the planning baseline and explains that it is not a model prediction; it offers a button to switch to local records. The prediction form accepts a date, temperature, rainfall, and occupancy, then displays predicted litres, status, and recommendation.
+The location selector is shared by Overview, Water Usage, and Prediction. Overview updates the chart and summary cards. For public locations, the app also displays a separate 135 LPCD population-based planning estimate with its formula, population scope, and source links. Water Usage lists the selected public records with period-specific source links, or lets the user view and add local building records. Prediction works for both local records and a selected public location. For a city, enter the forecast date, expected temperature, rainfall, and expected population to calculate daily demand for that location. The page displays litres/day, MLD, NORMAL/HIGH status, and conservation advice.
 
 ## 14. Prediction Logic
 
-The service uses saved records to fit an ordinary least-squares linear regression. It uses consumption as the value to estimate and features for temperature, rainfall, occupancy, month, and day of week. The submitted date and environmental values are passed through the fitted model. If there are too few records or the regression cannot be fitted, the service uses a clear historical-average baseline adjusted by occupancy and temperature. The result is kept non-negative.
+For local building predictions, the service uses saved records to fit an ordinary least-squares linear regression. It uses consumption as the value to estimate and features for temperature, rainfall, occupancy, month, and day of week. The submitted date and environmental values are passed through the fitted model. If there are too few records or the regression cannot be fitted, the service uses a clear historical-average baseline adjusted by occupancy and temperature. The result is kept non-negative.
+
+For a selected public city, the app calculates a daily scenario estimate from expected population × 135 LPCD. It adjusts that baseline using a simple, visible rule: 1% per °C above or below 25°C and −0.5% per mm of rain, with limits to keep the estimate bounded. These weather adjustments are demonstration assumptions, not values learned from daily city records. This makes a city-specific estimate usable while being clear that it is not a trained city ML forecast. The reported population and CPHEEO benchmark sources are linked on screen.
 
 Demand is HIGH when the estimate is above the historical average by more than 10%; otherwise it is NORMAL. This is a demonstration threshold, not a universal water-safety standard. More and better representative data can improve usefulness. No prediction is hardcoded.
 
@@ -207,10 +209,10 @@ Then provide that same password as the `DB_PASSWORD` environment variable when s
 6. **Rishi:** Show Overview. Select Muzaffarpur, India, Mumbai, and one other location. Point out the 2–5 dated chart records and the unit/source measure. Mention that supply, capacity, access, and per-person availability are different indicators.
 7. **Rishi:** Open Water Usage, select a public location, and show the dated record table and source links. Then switch to “My local prototype records” and show the illustrative building records.
 8. **Umar:** Add a new local water usage record with date, litres, temperature, rainfall, and occupancy. Explain that it is stored in local MySQL.
-9. **Umar:** Open Prediction, keep “My local prototype records” selected, and enter a date, expected temperature, rainfall, and occupancy.
-10. **Umar:** Generate the prediction. Show the estimated demand in litres, NORMAL/HIGH status, and conservation recommendation.
-11. **Umar:** Explain the flow: input data is validated and stored or combined with historical data; the backend estimates demand; the page displays the result and advice.
-12. **Both:** State the limits: the prototype uses sample/public summary data, has no physical sensors, and does not control supply. Public city summaries do not provide the matching daily weather and occupancy fields required for local prediction.
+9. **Umar:** Open Prediction and select Muzaffarpur or another public city. Enter forecast date, temperature, rainfall, and expected population.
+10. **Umar:** Generate the city daily demand estimate. Show litres/day, MLD, NORMAL/HIGH status, and conservation advice. Explain that the screen starts from a published population and 135 LPCD benchmark, with visible demonstration weather adjustments.
+11. **Umar:** Switch to “My local prototype records” and generate the saved-record regression prediction. Explain that this is a separate model using local historical building records.
+12. **Both:** State the limits: the prototype uses sample/public summary data, has no physical sensors, and does not control supply. The city scenario calculation is not trained on measured daily city records.
 
 ## 20. Project Limitations
 
