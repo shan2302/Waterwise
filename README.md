@@ -6,7 +6,7 @@ This project is a local web application for estimating future water demand. It c
 
 The system is a decision-support prototype. It does not control water supply. **This prototype does not require any physical hardware. It uses historical/sample data and runs locally on a computer.** The included records are sample data for demonstration, not measurements collected by the project team.
 
-The dashboard also shows publicly reported water facts for Bengaluru, Muzaffarpur, Delhi, Mumbai, and Srinagar District in Jammu & Kashmir. The facts use different measures and periods, such as water supplied, infrastructure capacity, seasonal production, and household access. They provide location context only; they are not combined with the sample building records or used by the prediction model. Sources and notes are in `data/public_city_water_context.csv`.
+The Overview has a location selector for India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, and Kolkata. Selecting a place updates the published-data chart and summary cards. Sources use different measures: some report water supply, some report infrastructure capacity or household access, and India reports water availability per person. The dashboard labels each measure and links to its source. These public figures are separate from the building sample records and are not used by the prediction model.
 
 ## 2. Environmental Problem
 
@@ -94,9 +94,9 @@ Each water-use record contains its date, consumption in litres, temperature in �
 - **Public datasets:** Public historical water-use records can replace or supplement the demonstration records.
 - **Weather/environment datasets:** Public weather and environmental datasets can provide temperature and rainfall inputs.
 - **Sample/seed data:** The app inserts clearly illustrative sample records when the database has no usage records. These make the prototype demonstrable without claiming field collection.
-- **Published location context:** The dashboard shows reported figures for Bengaluru, Muzaffarpur, Delhi, Mumbai, and Srinagar District. These include city supply/capacity, seasonal production, demand estimate, and household water-access coverage. Since these indicators differ, each is labeled with its period, measure, units, and source; they are not training rows for the building-level prediction. Source links are shown in the dashboard and listed in `data/public_city_water_context.csv`.
+- **Published location records:** The Overview lets the user select India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, or Kolkata. Delhi and Mumbai have several reporting periods; several other locations have only one published value. The chart and cards use the selected source values, and identify the source's measure, period, and unit. A single published value is not presented as a daily high/low series. These records are not training rows for the building-level prediction.
 
-The public figures come from these reports: [BWSSB Annual Report 2020–21](https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf); [Muzaffarpur Water Supply Service Level Improvement Plan](https://rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf); [Delhi Economic Survey 2023–24 highlights](https://delhiplanning.delhi.gov.in/sites/default/files/Planning/highlights_of_delhi_es_2023-24_english.pdf); [Praja report using BMC Environment Status Reports and RTI data for Mumbai](https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf); and [J&K Digest of Statistics 2023–24](https://jkplanning.gov.in/pdf/Digest%20of%20Statistics%202023-24.pdf).
+The public figures come from these sources: [Central Water Commission estimates reported by the Ministry of Jal Shakti](https://www.pib.gov.in/newsite/PrintRelease.aspx?lang=2&reg=48&relid=195633); [Muzaffarpur Water Supply Service Level Improvement Plan](https://rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf); [CAG audit of Delhi Jal Board](https://cag.gov.in/uploads/download_audit_report/2025/Delhi_PA-Report-on-3_DJB_English-069c2836793c603.23213132.pdf); [Praja report citing BMC Environment Status Reports for Mumbai](https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf); [BWSSB](https://mybwssb.org/content/about-bwssb-0); [J&K Digest of Statistics 2023–24](https://jkplanning.gov.in/pdf/Digest%20of%20Statistics%202023-24.pdf); and [Kolkata Municipal Corporation](https://www.kmcgov.in/KMCPortal/jsp/BasicStatistics.jsp). The location selector uses fixed public records bundled with the frontend, so it works without a paid service or internet API.
 
 ## 9. Input → Processing → Output
 
@@ -144,7 +144,7 @@ Historical Data → Prediction Service → Prediction Result → React Dashboard
 
 ## 13. Frontend
 
-The dashboard shows total, average, highest, and lowest recorded consumption, the latest prediction and its status, and a historical usage chart. The Water Usage section lists records and provides a form to add one. The Prediction section accepts a date, temperature, rainfall, and occupancy, then displays predicted litres, status, and recommendation.
+The Overview location dropdown updates the summary cards and chart for the selected public dataset. Choose “My local prototype records” to see total, average, highest, and lowest saved building consumption. Public locations show the indicator and units reported by their source; their values may describe city supply, capacity, or water availability instead of consumption. The latest building prediction remains based on local prototype records. The Water Usage section lists records and provides a form to add one. The Prediction section accepts a date, temperature, rainfall, and occupancy, then displays predicted litres, status, and recommendation.
 
 ## 14. Prediction Logic
 
@@ -213,7 +213,7 @@ Then provide that same password as the `DB_PASSWORD` environment variable when s
 ## 20. Project Limitations
 
 - The included historical records are sample data; prediction quality depends on having enough representative data.
-- The published location figures are from different years and report different indicators. They give context only and are not mixed into prediction training.
+- Published location figures have different reporting periods and indicators. A few locations have only one published figure, and India’s data is per-capita water availability rather than city consumption. They are shown with clear labels and are not mixed into prediction training.
 - The prototype does not directly measure water through physical sensors.
 - Prediction accuracy depends on data quality and quantity.
 - It does not physically detect leaks or control water supply.

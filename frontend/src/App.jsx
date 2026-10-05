@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import UsageChart from './components/UsageChart.jsx'
-import { publicCityWaterContext } from './data/publicCityWaterContext.js'
+import LocationTrendChart from './components/LocationTrendChart.jsx'
+import { publicLocationTrends } from './data/publicLocationTrends.js'
 import { api } from './services/api.js'
 
 const today = new Date().toISOString().slice(0, 10)
@@ -10,6 +11,7 @@ const number = (value) => Number(value || 0).toLocaleString(undefined, { maximum
 
 function App() {
   const [section, setSection] = useState('overview')
+  const [selectedLocationId, setSelectedLocationId] = useState('muzaffarpur')
   const [records, setRecords] = useState([])
   const [summary, setSummary] = useState(null)
   const [predictions, setPredictions] = useState([])
@@ -36,6 +38,10 @@ function App() {
 
   useEffect(() => { refresh() }, [refresh])
   const chartRecords = useMemo(() => records.slice(-14), [records])
+  const selectedLocation = publicLocationTrends.find((item) => item.id === selectedLocationId)
+  const locationValues = selectedLocation?.records.map((item) => item.value) || []
+  const locationAverage = locationValues.length ? locationValues.reduce((sum, value) => sum + value, 0) / locationValues.length : 0
+  const latestLocationValue = selectedLocation?.records.at(-1)
 
   async function submitUsage(event) {
     event.preventDefault(); setError(''); setNotice(''); setSaving(true)
@@ -53,12 +59,26 @@ function App() {
     } catch (requestError) { setError(requestError.message) } finally { setSaving(false) }
   }
 
-  const summaryCards = [
-    ['Total consumption', `${number(summary?.totalConsumption)} L`, 'Across recorded days'],
-    ['Average per day', `${number(summary?.averageConsumption)} L`, 'Recorded daily average'],
-    ['Highest day', `${number(summary?.highestConsumption)} L`, 'Maximum recorded use'],
-    ['Lowest day', `${number(summary?.lowestConsumption)} L`, 'Minimum recorded use'],
-  ]
+  const summaryCards = selectedLocationId === 'local'
+    ? [
+      ['Total consumption', `${number(summary?.totalConsumption)} L`, 'Across saved building records'],
+      ['Average per day', `${number(summary?.averageConsumption)} L`, 'Saved daily average'],
+      ['Highest day', `${number(summary?.highestConsumption)} L`, 'Highest saved daily use'],
+      ['Lowest day', `${number(summary?.lowestConsumption)} L`, 'Lowest saved daily use'],
+    ]
+    : selectedLocation.id === 'india'
+      ? [
+        ['Latest annual availability', `${number(latestLocationValue?.value)} ${selectedLocation.unit}`, latestLocationValue?.period || ''],
+        ['Average reported', `${number(locationAverage)} ${selectedLocation.unit}`, `${locationValues.length} published estimates`],
+        ['Highest estimate', `${number(Math.max(...locationValues))} ${selectedLocation.unit}`, selectedLocation.indicator],
+        ['Lowest estimate', `${number(Math.min(...locationValues))} ${selectedLocation.unit}`, selectedLocation.indicator],
+      ]
+      : [
+        [`${selectedLocation.records.length > 1 ? 'Latest reported' : 'Reported value'}`, `${number(latestLocationValue?.value)} ${selectedLocation.unit}`, `${latestLocationValue?.period || ''} · ${selectedLocation.indicator}`],
+        ['Average reported', `${number(locationAverage)} ${selectedLocation.unit}`, `${locationValues.length} published value${locationValues.length === 1 ? '' : 's'}`],
+        ['Highest reported', `${number(Math.max(...locationValues))} ${selectedLocation.unit}`, 'Within the published records'],
+        ['Lowest reported', `${number(Math.min(...locationValues))} ${selectedLocation.unit}`, 'Within the published records'],
+      ]
 
   return <div className="app-shell">
     <aside className="sidebar">
@@ -78,13 +98,14 @@ function App() {
         {notice && <div className="alert success" role="status">{notice}<button onClick={() => setNotice('')}>×</button></div>}
         {loading ? <div className="loading-card">Connecting to the local water demand system…</div> : <>
           {section === 'overview' && <>
-            <div className="page-heading"><div><div className="eyebrow">WATER RESOURCE MONITORING</div><h1>Overview</h1><p>A clear view of recent water use and expected demand.</p></div><button className="primary-button" onClick={() => setSection('prediction')}>Generate prediction <span>→</span></button></div>
-            <div className="stat-grid">{summaryCards.map(([label, value, helper]) => <article className="stat-card" key={label}><div className="stat-label">{label}<span className="stat-glyph">{label === 'Total consumption' ? '◉' : label === 'Average per day' ? '∿' : label === 'Highest day' ? '↗' : '↘'}</span></div><div className="stat-value">{value}</div><div className="stat-helper">{helper}</div></article>)}</div>
-            <div className="overview-grid"><section className="panel chart-panel"><div className="panel-heading"><div><h2>Historical water consumption</h2><p>Daily use across the most recent 14 records</p></div><span className="small-tag">LITRES</span></div><UsageChart records={chartRecords}/></section>
+            <div className="page-heading"><div><div className="eyebrow">WATER RESOURCE MONITORING</div><h1>Overview</h1><p>Choose a place to view its published water data and trend.</p></div><button className="primary-button" onClick={() => setSection('prediction')}>Generate prediction <span>→</span></button></div>
+            <section className="location-filter panel"><label htmlFor="location-select"><span className="eyebrow">LOCATION / DATASET</span><strong>View overview for</strong></label><select id="location-select" value={selectedLocationId} onChange={(event) => setSelectedLocationId(event.target.value)}><option value="local">My local prototype records</option>{publicLocationTrends.map((item) => <option value={item.id} key={item.id}>{item.name}{item.region ? `, ${item.region}` : ''}</option>)}</select></section>
+            <div className="stat-grid">{summaryCards.map(([label, value, helper], index) => <article className="stat-card" key={label}><div className="stat-label">{label}<span className="stat-glyph">{['◉', '∿', '↗', '↘'][index]}</span></div><div className="stat-value">{value}</div><div className="stat-helper">{helper}</div></article>)}</div>
+            <div className="overview-grid"><section className="panel chart-panel"><div className="panel-heading"><div><h2>{selectedLocationId === 'local' ? 'Historical water consumption' : `${selectedLocation.name}: published water data`}</h2><p>{selectedLocationId === 'local' ? 'Daily use across the most recent 14 records' : selectedLocation.indicator}</p></div><span className="small-tag">{selectedLocationId === 'local' ? 'LITRES' : selectedLocation.unit}</span></div>{selectedLocationId === 'local' ? <UsageChart records={chartRecords}/> : <LocationTrendChart location={selectedLocation}/>}</section>
               <section className="panel prediction-panel"><div className="panel-heading"><div><h2>Latest prediction</h2><p>Most recent demand estimate</p></div><span className="water-icon">⌁</span></div>{latest ? <><div className="latest-date">{latest.predictionDate}</div><div className="latest-value">{number(latest.predictedDemandLitres)} <span>L</span></div><span className={`status-badge ${latest.demandStatus.toLowerCase()}`}>{latest.demandStatus} DEMAND</span><p className="recommendation">{latest.recommendation}</p></> : <div className="empty-state"><p>No prediction yet.</p><button className="text-button" onClick={() => setSection('prediction')}>Create your first prediction →</button></div>}</section>
             </div>
-            <section className="panel city-data-panel"><div className="panel-heading"><div><div className="eyebrow">PUBLIC WATER DATA · INDIA</div><h2>Real location context</h2><p>Published utility and water-access figures for five locations.</p></div><span className="small-tag">SOURCE-LINKED</span></div><div className="table-scroll"><table><thead><tr><th>Location</th><th>Period</th><th>Published indicator</th><th>Figure</th><th>Source</th></tr></thead><tbody>{publicCityWaterContext.map((fact) => <tr key={`${fact.location}-${fact.indicator}`}><td>{fact.location}</td><td>{fact.period}</td><td><strong>{fact.indicator}</strong><br/><span className="city-data-table-note">{fact.note}</span></td><td className="table-emphasis">{fact.value}</td><td><a className="source-link" href={fact.sourceUrl} target="_blank" rel="noreferrer">{fact.source} ↗</a></td></tr>)}</tbody></table></div><p className="city-data-note">These figures use different measures and reporting periods, so they are shown as local context only. They are not daily building-level records and are not used in the prototype prediction.</p></section>
-            <section className="panel recent-panel"><div className="panel-heading"><div><h2>Recent usage records</h2><p>Latest saved observations</p></div><button className="text-button" onClick={() => setSection('usage')}>View all records →</button></div><UsageTable records={records.slice(-5).reverse()}/></section>
+            {selectedLocationId !== 'local' && <section className="panel city-data-panel"><div className="panel-heading"><div><div className="eyebrow">{selectedLocation.name.toUpperCase()} · {selectedLocation.region.toUpperCase()}</div><h2>{selectedLocation.indicator}</h2><p>{selectedLocation.note}</p></div><span className="small-tag">PUBLIC SOURCE</span></div><p className="city-data-note">Source: <a className="source-link" href={selectedLocation.sourceUrl} target="_blank" rel="noreferrer">{selectedLocation.sourceLabel} ↗</a></p><p className="city-data-note">These published values use the source's reporting periods. The prediction form continues to use the local prototype's building records.</p></section>}
+            {selectedLocationId === 'local' && <section className="panel recent-panel"><div className="panel-heading"><div><h2>Recent usage records</h2><p>Latest saved observations</p></div><button className="text-button" onClick={() => setSection('usage')}>View all records →</button></div><UsageTable records={records.slice(-5).reverse()}/></section>}
           </>}
           {section === 'usage' && <><div className="page-heading"><div><div className="eyebrow">HISTORICAL DATA</div><h1>Water usage</h1><p>Review records or add an observation to the local dataset.</p></div><div className="record-count">{records.length} records</div></div>
             <div className="usage-layout"><section className="panel form-panel"><div className="panel-heading"><div><h2>Add a usage record</h2><p>Enter the daily information below.</p></div></div><form onSubmit={submitUsage} className="form-grid">

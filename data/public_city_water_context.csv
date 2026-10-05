@@ -1,8 +1,0 @@
-location,period,indicator,value,unit,source_note,source_url
-Bengaluru Karnataka,2020-21,Average water received by BWSSB,1227,MLD,City-wide utility supply,https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf
-Bengaluru Karnataka,2020-21,Designed treated-water capacity,1445,MLD,System capacity not measured consumption,https://kla.kar.nic.in/council/house/Paperlaid/147/91.pdf
-Muzaffarpur Bihar,AMRUT planning baseline report published 2018,Existing tube-well system capacity,30,MLD,Historical baseline; 20 of 27 tube wells were reported functioning,https://rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf
-Delhi NCT,Summer 2023-24,Daily water production (reported),1000,MGD,About 1000 MGD; MGD means million gallons per day,https://delhiplanning.delhi.gov.in/sites/default/files/Planning/highlights_of_delhi_es_2023-24_english.pdf
-Mumbai Maharashtra,2023-24,Overall water supplied to the city,3975,MLD,City-wide supply reported from BMC Environment Status Report,https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf
-Mumbai Maharashtra,2023-24,Estimated city water demand,4664,MLD,Demand estimate documented in report; not measured consumption,https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf
-Srinagar District Jammu and Kashmir,2023-24,Households with safe drinking water within premises,100,%,Rural and urban household coverage; not a consumption volume,https://jkplanning.gov.in/pdf/Digest%20of%20Statistics%202023-24.pdf
