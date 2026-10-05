@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import UsageChart from './components/UsageChart.jsx'
 import LocationTrendChart from './components/LocationTrendChart.jsx'
-import { publicLocationTrends } from './data/publicLocationTrends.js'
+import { publicLocationTrends, unitDescriptions } from './data/publicLocationTrends.js'
 import { api } from './services/api.js'
 
 const today = new Date().toISOString().slice(0, 10)
@@ -72,6 +72,13 @@ function App() {
         ['Published records', String(locationValues.length), '2009 supply and 2015/2017 capacity'],
         ['2009 reported supply', `${number(selectedLocation.records[0].value)} ${selectedLocation.unit}`, 'Municipal water works figure'],
         ['Later reported capacity', `${number(selectedLocation.records[1].value)} ${selectedLocation.unit}`, 'AMRUT planning baseline'],
+      ]
+      : selectedLocation.id === 'srinagar'
+      ? [
+        ['Latest rural coverage', `${number(latestLocationValue?.value)}%`, 'Households reported with a tap connection'],
+        ['Dated reports', String(locationValues.length), '2020, 2021, and 2023'],
+        ['Earliest → latest', `${number(selectedLocation.records[0].value)}% → ${number(latestLocationValue?.value)}%`, 'Reported connection coverage'],
+        ['Indicator', 'Tap access', 'Not water volume or consumption'],
       ]
       : selectedLocation.id === 'india'
       ? [
@@ -155,12 +162,14 @@ function App() {
 function Field({ label, children }) { return <label className="field"><span>{label}</span>{children}</label> }
 
 function LocationSelector({ value, onChange, description }) {
-  return <section className="location-filter panel"><label htmlFor="location-select"><strong>{description}</strong><span className="field-hint">Choose a location or your local prototype records.</span></label><select id="location-select" value={value} onChange={(event) => onChange(event.target.value)}><option value="local">My local prototype records</option>{publicLocationTrends.map((location) => <option value={location.id} key={location.id}>{location.name} — {location.region}</option>)}</select></section>
+  const selected = publicLocationTrends.find((location) => location.id === value)
+  const unitMeaning = selected && unitDescriptions[selected.unit]
+  return <section className="location-filter panel"><label htmlFor="location-select"><strong>{description}</strong><span className="field-hint">{selected ? `Unit: ${selected.unit}${unitMeaning ? ` means ${unitMeaning}` : ''}.` : 'Choose a location or your local prototype records.'}</span></label><select id="location-select" value={value} onChange={(event) => onChange(event.target.value)}><option value="local">My local prototype records</option>{publicLocationTrends.map((location) => <option value={location.id} key={location.id}>{location.name} — {location.region}</option>)}</select></section>
 }
 
 function PublicLocationView({ location }) {
   return <div className="public-location-view">
-    <section className="panel public-location-chart"><div className="panel-heading"><div><div className="eyebrow">{location.name.toUpperCase()} · {location.region.toUpperCase()}</div><h2>{location.indicator}</h2><p>{location.records.length} published records · {location.unit}</p></div><span className="small-tag">PUBLIC DATA</span></div><LocationTrendChart location={location}/><p className="public-location-note">{location.note}</p></section>
+    <section className="panel public-location-chart"><div className="panel-heading"><div><div className="eyebrow">{location.name.toUpperCase()} · {location.region.toUpperCase()}</div><h2>{location.indicator}</h2><p>{location.records.length} published records · {location.unit}{unitDescriptions[location.unit] ? ` (${unitDescriptions[location.unit]})` : ''}</p></div><span className="small-tag">PUBLIC DATA</span></div><LocationTrendChart location={location}/><p className="public-location-note">{location.note}</p></section>
     <section className="panel recent-panel"><div className="panel-heading"><div><h2>Published records</h2><p>Each row links to the source used for that value.</p></div></div><div className="table-scroll"><table><thead><tr><th>Period</th><th>Indicator</th><th>Reported value</th><th>Source</th></tr></thead><tbody>{location.records.map((record) => <tr key={record.period}><td>{record.period}</td><td>{record.note || location.indicator}</td><td className="table-emphasis">{number(record.value)} {location.unit}</td><td><a className="source-link" href={record.sourceUrl || location.sourceUrl} target="_blank" rel="noreferrer">{record.sourceLabel || location.sourceLabel} ↗</a></td></tr>)}</tbody></table></div></section>
   </div>
 }

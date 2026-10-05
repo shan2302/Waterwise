@@ -1,3 +1,9 @@
+export const unitDescriptions = {
+  MGD: 'million gallons per day',
+  MLD: 'million litres per day',
+  'TMC/year': 'thousand million cubic feet per year',
+}
+
 export const publicLocationTrends = [
   {
     id: 'india',
@@ -83,11 +89,11 @@ export const publicLocationTrends = [
     id: 'srinagar',
     name: 'Srinagar District',
     region: 'Jammu & Kashmir',
-    indicator: 'Rural households with functional tap-water connection',
+    indicator: 'Share of rural households with a functional tap-water connection',
     unit: '%',
     sourceLabel: 'Jal Jeevan Mission reports and J&K government releases',
     sourceUrl: 'https://www.pib.gov.in/PressReleasePage.aspx?PRID=1681481',
-    note: 'These records report household tap-water access, not how much water households use. Srinagar was reported at 100% rural household tap connection coverage in 2020 and 2021; the 2023 source also reports 100% and district certification.',
+    note: '100% means all rural households counted in the reported coverage were recorded as having a functional household tap connection (FHTC). It measures connection access, not the amount consumed or whether water flows continuously. These records are not a water-supply volume.',
     records: [
       { period: '2020', value: 100, sourceLabel: 'Ministry of Jal Shakti / PIB', sourceUrl: 'https://www.pib.gov.in/PressReleasePage.aspx?PRID=1681481', note: 'Srinagar district reported as having 100% rural household tap-water connections.' },
       { period: '2021', value: 100, sourceLabel: 'Ministry of Jal Shakti / PIB', sourceUrl: 'https://www.pib.gov.in/PressReleseDetailm.aspx?PRID=1711174&lang=2&reg=3', note: 'Srinagar district included among districts declared Har Ghar Jal.' },
