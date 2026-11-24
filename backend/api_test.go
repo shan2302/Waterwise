@@ -45,9 +45,9 @@ func TestAPIListsUsageAndSummary(t *testing.T) {
 
 func TestAPIAddsUsageAndValidatesInput(t *testing.T) {
 	db, mock := newMockDB(t)
-	mock.ExpectExec("INSERT INTO water_usage").
-		WithArgs("2026-10-01", 5000.0, 28.0, 2.0, 100).
-		WillReturnResult(sqlmock.NewResult(7, 1))
+	mock.ExpectQuery("INSERT INTO water_usage").
+		WithArgs(time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC), 5000.0, 28.0, 2.0, 100).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(7))
 
 	handler := NewHandler(db)
 	request := httptest.NewRequest(http.MethodPost, "/api/water-usage",
@@ -103,9 +103,9 @@ func TestAPIPredictionGeneration(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id", "usage_date", "consumption_litres", "temperature", "rainfall", "occupancy"}).
 			AddRow(1, time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC), 5000.0, 25.0, 0.0, 100).
 			AddRow(2, time.Date(2026, 9, 2, 0, 0, 0, 0, time.UTC), 6000.0, 27.0, 2.0, 120))
-	mock.ExpectExec("INSERT INTO predictions").
-		WithArgs("2026-10-03", sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
-		WillReturnResult(sqlmock.NewResult(12, 1))
+	mock.ExpectQuery("INSERT INTO predictions").
+		WithArgs(time.Date(2026, 10, 3, 0, 0, 0, 0, time.UTC), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg(), sqlmock.AnyArg()).
+		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow(12))
 
 	handler := NewHandler(db)
 	request := httptest.NewRequest(http.MethodPost, "/api/predictions",

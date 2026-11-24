@@ -6,5 +6,8 @@ frontend/.vite/
 backend/src/main/resources/application-local.properties
 **/.idea/
 .DS_Store
+.env
+.env.*
+!.env.example
 
 .vercel

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"math"
@@ -15,7 +16,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-sql-driver/mysql"
+	_ "github.com/jackc/pgx/v5/stdlib"
 )
 
 type waterUsage struct {
@@ -65,36 +66,27 @@ type api struct {
 }
 
 func OpenDB() (*sql.DB, error) {
-	cfg := mysql.NewConfig()
-	var err error
-	if dsn := strings.TrimSpace(os.Getenv("DB_DSN")); dsn != "" {
-		cfg, err = mysql.ParseDSN(dsn)
-		if err != nil {
-			return nil, err
+	dsn := strings.TrimSpace(os.Getenv("DATABASE_URL"))
+	if dsn == "" {
+		dsn = strings.TrimSpace(os.Getenv("DB_DSN"))
+	}
+	if dsn == "" {
+		connectionURL := url.URL{
+			Scheme: "postgres",
+			User:   url.UserPassword(envOr("DB_USERNAME", "water_app"), os.Getenv("DB_PASSWORD")),
+			Host:   net.JoinHostPort(envOr("DB_HOST", "127.0.0.1"), envOr("DB_PORT", "5432")),
+			Path:   "/" + envOr("DB_NAME", "water_demand_db"),
+			RawQuery: url.Values{
+				"sslmode": {envOr("DB_SSLMODE", "disable")},
+			}.Encode(),
 		}
-	} else if databaseURL := strings.TrimSpace(os.Getenv("DATABASE_URL")); databaseURL != "" {
-		cfg, err = mysqlConfigFromURL(databaseURL)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		cfg.User = envOr("DB_USERNAME", "water_app")
-		cfg.Passwd = os.Getenv("DB_PASSWORD")
-		cfg.Net = "tcp"
-		cfg.Addr = net.JoinHostPort(envOr("DB_HOST", "127.0.0.1"), envOr("DB_PORT", "3306"))
-		cfg.DBName = envOr("DB_NAME", "water_demand_db")
+		dsn = connectionURL.String()
 	}
-	cfg.ParseTime = true
-	cfg.Loc = time.UTC
-	if cfg.Params == nil {
-		cfg.Params = make(map[string]string)
+	dsn, err := normalizePostgresURL(dsn)
+	if err != nil {
+		return nil, err
 	}
-	cfg.Params["charset"] = "utf8mb4"
-	if cfg.TLS == nil && cfg.TLSConfig == "" && (os.Getenv("VERCEL") == "1" || envBool("DB_TLS")) {
-		cfg.TLSConfig = "true"
-	}
-
-	db, err := sql.Open("mysql", cfg.FormatDSN())
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		return nil, err
 	}
@@ -111,49 +103,21 @@ func OpenDB() (*sql.DB, error) {
 	return db, nil
 }
 
-func mysqlConfigFromURL(raw string) (*mysql.Config, error) {
+func normalizePostgresURL(raw string) (string, error) {
 	parsed, err := url.Parse(raw)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	if parsed.Scheme != "mysql" && parsed.Scheme != "mysql+tcp" {
-		return nil, errors.New("DATABASE_URL must use the mysql:// scheme")
+	if parsed.Scheme != "postgres" && parsed.Scheme != "postgresql" {
+		return "", errors.New("DATABASE_URL must use the postgres:// or postgresql:// scheme")
 	}
 	if parsed.Hostname() == "" || strings.Trim(parsed.Path, "/") == "" {
-		return nil, errors.New("DATABASE_URL must include a host and database name")
+		return "", errors.New("DATABASE_URL must include a host and database name")
 	}
-	cfg := mysql.NewConfig()
-	if parsed.User != nil {
-		cfg.User = parsed.User.Username()
-		cfg.Passwd, _ = parsed.User.Password()
-	}
-	port := parsed.Port()
-	if port == "" {
-		port = "3306"
-	}
-	cfg.Net = "tcp"
-	cfg.Addr = net.JoinHostPort(parsed.Hostname(), port)
-	cfg.DBName = strings.Trim(parsed.Path, "/")
-	cfg.Params = make(map[string]string)
-	for key, values := range parsed.Query() {
-		if len(values) == 0 {
-			continue
-		}
-		switch key {
-		case "tls":
-			cfg.TLSConfig = values[len(values)-1]
-		case "timeout", "readTimeout", "writeTimeout":
-			cfg.Params[key] = values[len(values)-1]
-		case "charset":
-			cfg.Params["charset"] = values[len(values)-1]
-		}
-	}
-	return cfg, nil
-}
-
-func envBool(key string) bool {
-	value := strings.ToLower(strings.TrimSpace(os.Getenv(key)))
-	return value == "1" || value == "true" || value == "yes"
+	query := parsed.Query()
+	query.Del("channel_binding")
+	parsed.RawQuery = query.Encode()
+	return parsed.String(), nil
 }
 
 func Initialize(ctx context.Context, db *sql.DB) error {
@@ -174,7 +138,7 @@ func Run() error {
 		return err
 	}
 	defer db.Close()
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := Initialize(ctx, db); err != nil {
 		return err
@@ -194,20 +158,20 @@ func envOr(key, fallback string) string {
 func initialize(ctx context.Context, db *sql.DB) error {
 	statements := []string{
 		`CREATE TABLE IF NOT EXISTS water_usage (
-			id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			id BIGSERIAL PRIMARY KEY,
 			usage_date DATE NOT NULL,
-			consumption_litres DOUBLE NOT NULL,
-			temperature DOUBLE NOT NULL,
-			rainfall DOUBLE NOT NULL,
+			consumption_litres DOUBLE PRECISION NOT NULL,
+			temperature DOUBLE PRECISION NOT NULL,
+			rainfall DOUBLE PRECISION NOT NULL,
 			occupancy INT NOT NULL
 		)`,
 		`CREATE TABLE IF NOT EXISTS predictions (
-			id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+			id BIGSERIAL PRIMARY KEY,
 			prediction_date DATE NOT NULL,
-			predicted_demand_litres DOUBLE NOT NULL,
+			predicted_demand_litres DOUBLE PRECISION NOT NULL,
 			demand_status VARCHAR(255) NOT NULL,
 			recommendation VARCHAR(500) NOT NULL,
-			created_at DATETIME NOT NULL
+			created_at TIMESTAMPTZ NOT NULL
 		)`,
 	}
 	for _, statement := range statements {
@@ -216,39 +180,26 @@ func initialize(ctx context.Context, db *sql.DB) error {
 		}
 	}
 
-	conn, err := db.Conn(ctx)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	var lockAcquired sql.NullInt64
-	if err := conn.QueryRowContext(ctx, "SELECT GET_LOCK('water_demand_seed', 10)").Scan(&lockAcquired); err != nil {
-		return err
-	}
-	if !lockAcquired.Valid || lockAcquired.Int64 != 1 {
-		return errors.New("could not acquire the database seed lock")
-	}
-	defer func() {
-		if _, err := conn.ExecContext(context.Background(), "SELECT RELEASE_LOCK('water_demand_seed')"); err != nil {
-			log.Printf("release database seed lock: %v", err)
-		}
-	}()
-
-	var count int64
-	if err := conn.QueryRowContext(ctx, "SELECT COUNT(*) FROM water_usage").Scan(&count); err != nil {
-		return err
-	}
-	if count != 0 {
-		return nil
-	}
-
-	tx, err := conn.BeginTx(ctx, nil)
+	tx, err := db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
 	}
 	defer tx.Rollback()
+	if _, err := tx.ExecContext(ctx, "LOCK TABLE water_usage IN SHARE ROW EXCLUSIVE MODE"); err != nil {
+		return err
+	}
+
+	var count int64
+	if err := tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM water_usage").Scan(&count); err != nil {
+		return err
+	}
+	if count != 0 {
+		return tx.Commit()
+	}
 
 	start := dateOnly(time.Now()).AddDate(0, 0, -29)
+	valueStrings := make([]string, 0, 30)
+	valueArgs := make([]any, 0, 30*5)
 	for day := 0; day < 30; day++ {
 		date := start.AddDate(0, 0, day)
 		temperature := 25 + float64(day%9)*1.2
@@ -260,12 +211,13 @@ func initialize(ctx context.Context, db *sql.DB) error {
 		}
 		occupancy := 86 + day*7%31
 		consumption := math.Round(4100 + float64(occupancy)*13 + temperature*38 - rainfall*16 + float64(day%5)*95)
-		if _, err := tx.ExecContext(ctx,
-			`INSERT INTO water_usage (usage_date, consumption_litres, temperature, rainfall, occupancy)
-			 VALUES (?, ?, ?, ?, ?)`,
-			date.Format("2006-01-02"), consumption, temperature, rainfall, occupancy); err != nil {
-			return err
-		}
+		n := day * 5
+		valueStrings = append(valueStrings, fmt.Sprintf("($%d, $%d, $%d, $%d, $%d)", n+1, n+2, n+3, n+4, n+5))
+		valueArgs = append(valueArgs, date, consumption, temperature, rainfall, occupancy)
+	}
+	stmt := fmt.Sprintf("INSERT INTO water_usage (usage_date, consumption_litres, temperature, rainfall, occupancy) VALUES %s", strings.Join(valueStrings, ", "))
+	if _, err := tx.ExecContext(ctx, stmt, valueArgs...); err != nil {
+		return err
 	}
 	return tx.Commit()
 }
@@ -342,15 +294,12 @@ func (a *api) handleWaterUsage(w http.ResponseWriter, r *http.Request) {
 			writeError(w, http.StatusBadRequest, message)
 			return
 		}
-		result, err := a.db.ExecContext(r.Context(),
+		parsedDate, _ := time.Parse("2006-01-02", date)
+		var id int64
+		err := a.db.QueryRowContext(r.Context(),
 			`INSERT INTO water_usage (usage_date, consumption_litres, temperature, rainfall, occupancy)
-			 VALUES (?, ?, ?, ?, ?)`,
-			date, *input.ConsumptionLitres, *input.Temperature, *input.Rainfall, *input.Occupancy)
-		if err != nil {
-			a.databaseError(w, err)
-			return
-		}
-		id, err := result.LastInsertId()
+			 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+			parsedDate, *input.ConsumptionLitres, *input.Temperature, *input.Rainfall, *input.Occupancy).Scan(&id)
 		if err != nil {
 			a.databaseError(w, err)
 			return
@@ -538,14 +487,12 @@ func (a *api) createPrediction(ctx context.Context, date string, temperature, ra
 	}
 
 	createdAt := a.now()
-	inserted, err := a.db.ExecContext(ctx,
+	parsedDate, _ := time.Parse("2006-01-02", date)
+	var id int64
+	err = a.db.QueryRowContext(ctx,
 		`INSERT INTO predictions (prediction_date, predicted_demand_litres, demand_status, recommendation, created_at)
-		 VALUES (?, ?, ?, ?, ?)`,
-		date, estimate, status, recommendation, createdAt)
-	if err != nil {
-		return prediction{}, err
-	}
-	id, err := inserted.LastInsertId()
+		 VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+		parsedDate, estimate, status, recommendation, createdAt).Scan(&id)
 	if err != nil {
 		return prediction{}, err
 	}
@@ -764,7 +711,7 @@ func methodNotAllowed(w http.ResponseWriter) {
 
 func (a *api) databaseError(w http.ResponseWriter, err error) {
 	log.Printf("database operation failed: %v", err)
-	writeError(w, http.StatusServiceUnavailable, "Database unavailable. Check that local MySQL is running and configured.")
+	writeError(w, http.StatusServiceUnavailable, "Database unavailable. Check that the PostgreSQL database is reachable and configured.")
 }
 
 func writeError(w http.ResponseWriter, status int, message string) {

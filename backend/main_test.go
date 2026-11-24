@@ -2,20 +2,35 @@ package backend
 
 import (
 	"math"
+	"net/url"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/jackc/pgx/v5"
 )
 
-func TestMySQLConfigFromURL(t *testing.T) {
-	config, err := mysqlConfigFromURL("mysql://water_app:p%40ss@db.example.com:3307/water_demand_db?tls=true&timeout=5s")
+func TestNormalizePostgresURL(t *testing.T) {
+	connectionURL, err := normalizePostgresURL("postgresql://water_app:p%40ss@db.example.com:5432/water_demand_db?sslmode=require&channel_binding=require")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if config.User != "water_app" || config.Passwd != "p@ss" || config.DBName != "water_demand_db" {
-		t.Fatal("database URL credentials or database name were not parsed correctly")
+	parsed, err := url.Parse(connectionURL)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if config.Addr != "db.example.com:3307" || config.TLSConfig != "true" || config.Params["timeout"] != "5s" {
-		t.Fatal("database URL connection options were not parsed correctly")
+	password, _ := parsed.User.Password()
+	if parsed.User.Username() != "water_app" || password != "p@ss" || strings.Trim(parsed.Path, "/") != "water_demand_db" {
+		t.Fatal("database URL credentials or database name were not preserved")
+	}
+	if parsed.Host != "db.example.com:5432" || parsed.Query().Get("sslmode") != "require" || parsed.Query().Has("channel_binding") {
+		t.Fatal("database URL connection options were not normalized correctly")
+	}
+	if _, err := pgx.ParseConfig(connectionURL); err != nil {
+		t.Fatalf("pgx rejected the normalized database URL: %v", err)
+	}
+	if _, err := normalizePostgresURL("mysql://user:pass@db.example.com/database"); err == nil {
+		t.Fatal("expected MySQL URL to be rejected")
 	}
 }
 

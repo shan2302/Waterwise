@@ -22,7 +22,7 @@ func serve(w http.ResponseWriter, r *http.Request, path string) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusServiceUnavailable)
 		if err := json.NewEncoder(w).Encode(map[string]string{
-			"error": "Database unavailable. Configure a reachable MySQL database for this deployment.",
+			"error": "Database unavailable. Configure a reachable PostgreSQL database for this deployment.",
 		}); err != nil {
 			log.Printf("write initialization error response: %v", err)
 		}
@@ -48,7 +48,7 @@ func initialize() error {
 		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 	if err := backend.Initialize(ctx, db); err != nil {
 		db.Close()

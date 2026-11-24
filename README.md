@@ -20,7 +20,7 @@ Water is a limited natural resource. Unnecessary consumption and unpredictable d
 
 Our proposed digital solution is an AI/ML-based web application that uses historical water-consumption and environmental data to predict future water demand and display demand status and conservation recommendations.
 
-React provides the user interface. The Go backend provides REST APIs and application logic. MySQL stores historical consumption and prediction records. The prediction service processes historical records and the new inputs to estimate demand. The estimate is a transparent regression-based ML-style model; it is not deep learning.
+React provides the user interface. The Go backend provides REST APIs and application logic. PostgreSQL stores historical consumption and prediction records. The prediction service processes historical records and the new inputs to estimate demand. The estimate is a transparent regression-based ML-style model; it is not deep learning.
 
 ## 5. BCS508 Google Form Answers
 
@@ -37,7 +37,7 @@ Water is a limited natural resource. Unnecessary consumption and unpredictable d
 
 ### Proposed Digital Solution
 
-An AI/ML-based web application that uses historical water-consumption and environmental data to predict future water demand and display demand status and conservation recommendations. This is our proposed solution. React provides the interface; Go provides REST APIs and application logic; MySQL stores historical consumption and predictions; and prediction logic processes the historical records and supplied inputs to produce predicted demand.
+An AI/ML-based web application that uses historical water-consumption and environmental data to predict future water demand and display demand status and conservation recommendations. This is our proposed solution. React provides the interface; Go provides REST APIs and application logic; PostgreSQL stores historical consumption and predictions; and prediction logic processes the historical records and supplied inputs to produce predicted demand.
 
 ### Input Data Required
 
@@ -55,7 +55,7 @@ Possible sources include public historical water-consumption datasets, governmen
 
 ↓
 
-**PROCESSING** — Validate and store data in MySQL; retrieve historical records; calculate statistics/features; fit a small regression model; estimate demand; compare it with the normal historical range.
+**PROCESSING** — Validate and store data in PostgreSQL; retrieve historical records; calculate statistics/features; fit a small regression model; estimate demand; compare it with the normal historical range.
 
 ↓
 
@@ -73,14 +73,14 @@ Possible sources include public historical water-consumption datasets, governmen
 
 GitHub Repository: https://github.com/shan2302/Waterwise
 
-Local Prototype: Runs locally using React + Go + MySQL. The final Google Form link can point to the published GitHub repository or another accessible project artifact.
+Local Prototype: Runs locally using React + Go + PostgreSQL. The final Google Form link can point to the published GitHub repository or another accessible project artifact.
 
 ## 6. Technologies Used
 
 - **React and Vite:** Build and serve the browser interface locally.
 - **Go:** Implements the backend application and REST endpoints.
-- **MySQL driver for Go:** Connects the backend to the local database.
-- **MySQL:** Stores records on the local computer in `water_demand_db`.
+- **pgx PostgreSQL driver for Go:** Connects the backend to PostgreSQL.
+- **PostgreSQL:** Stores records in the configured local or managed database.
 - **AI/ML:** A small ordinary least-squares regression is fitted from available historical records for prediction.
 - **Data Analytics:** Summary statistics and a chart help users understand recorded consumption.
 
@@ -100,7 +100,7 @@ Downloaded public CSV files are in the project `data/` folder:
 - `pune_daily_water_consumption_dec_2016.csv` and `pune_daily_water_consumption_dec_2017.csv`: Pune Municipal Corporation daily consumption totals in MLD, covering 31 days in each December. The source files also include title/header rows and summary rows (`TOTAL` and `AVERAGE`). [Dataset page and source details](https://data.opencity.in/dataset/water-consumption-in-pune) · [2016 CSV](https://data.opencity.in/dataset/70cf9161-860f-4172-a2fb-b11bb94094f9/resource/147a79a2-1cc5-40c9-ab25-09a38dabb8e7/download/2d32f493-71d6-431c-9b2c-098b9a8182b2.csv) · [2017 CSV](https://data.opencity.in/dataset/70cf9161-860f-4172-a2fb-b11bb94094f9/resource/ce853c95-0686-4a5d-ac76-bcd05758092d/download/71eca138-6e75-4fae-89f3-2a6d119eabf3.csv).
 - `chennai_zone_water_supply_consumption_jan_2019.csv`: 15 Chennai zones with reported supply capacity and domestic water consumption in litres/day. This is a zone-level snapshot for January 2019, not a daily time series. [Dataset page](https://data.opencity.in/dataset/chennai-water-supply/resource/1c22bdb5-e9e0-4246-8248-740bbbb9945d) · [CSV download](https://data.opencity.in/dataset/ce53de1e-5a35-494f-a7f4-132c0043c5c3/resource/1c22bdb5-e9e0-4246-8248-740bbbb9945d/download/1c288ca9-d0ec-4640-b93c-6edcc841d2cf.csv). The source listing does not specify a license, so this local copy is not included in the public repository pending permission or license clarification.
 
-These are real published public records, but they are not imported into the app's MySQL training records yet. The Pune files are city/utility-scale MLD values, while the current local prediction model expects building-scale litres plus weather and occupancy fields. Keeping those scales separate avoids presenting a mixed-scale prediction as valid. The city prediction screen currently uses its visible population and service-benchmark scenario method.
+These are real published public records, but they are not imported into the app's PostgreSQL training records yet. The Pune files are city/utility-scale MLD values, while the current local prediction model expects building-scale litres plus weather and occupancy fields. Keeping those scales separate avoids presenting a mixed-scale prediction as valid. The city prediction screen currently uses its visible population and service-benchmark scenario method.
 
 The app also shows a separate **estimated domestic planning baseline** for each location. It multiplies the Census 2011 population figure by the CPHEEO planning benchmark of 135 litres per person per day (LPCD), then converts the result to MLD. For example, Muzaffarpur's 2011 municipal population gives about 47.85 MLD. These are population-based planning estimates, not observed daily consumption, actual municipal supply, or AI/ML forecasts. Population scopes vary: some figures are municipal corporation populations, some are urban agglomerations, and India's figure is its 2011 urban population. The cards link to population and benchmark sources and label the scope.
 
@@ -115,7 +115,7 @@ INPUT
 Historical usage + date + temperature + rainfall + occupancy
         ↓
 PROCESSING
-Validate → save/retrieve with Go and MySQL → analyze history → fit regression → estimate demand
+Validate → save/retrieve with Go and PostgreSQL → analyze history → fit regression → estimate demand
         ↓
 OUTPUT
 Predicted litres + demand status + chart/statistics + conservation recommendation
@@ -130,7 +130,7 @@ Go REST API (http://localhost:8080)
         ↓
 Application logic
         ↓
-Local MySQL (water_demand_db)
+Local or managed PostgreSQL database
 
 Historical Data → Prediction Service → Prediction Result → React Dashboard
 ```
@@ -172,36 +172,31 @@ Demand is HIGH when the estimate is above the historical average by more than 10
 
 ## 16. How to Run Locally
 
-The backend needs Go 1.22 or newer and a running MySQL server. The frontend needs Node.js and npm. The API uses MySQL for durable storage.
+The backend needs Go 1.22 or newer and a reachable PostgreSQL database. The frontend needs Node.js and npm. The API uses PostgreSQL for durable storage.
 
 ## 17. Backend Setup
 
-1. Install Go 1.22 or newer and MySQL Server.
-2. On Ubuntu, install MySQL Server from a terminal with `sudo apt update` followed by `sudo apt install mysql-server`.
-3. Start the service with `sudo systemctl start mysql`. To have it start after computer restarts, run `sudo systemctl enable mysql`.
-4. Check that it is running with `sudo systemctl status mysql`. It should show `active (running)`. Press `q` to leave the status view.
-5. Open the MySQL console with `sudo mysql` and create the database by entering `CREATE DATABASE water_demand_db;`. Then enter `EXIT;`.
-6. The backend uses a local account named `water_app` by default. Set `DB_USERNAME` and `DB_PASSWORD` in the environment; the password is not stored in the project. Also available are `DB_HOST` (default `127.0.0.1`), `DB_PORT` (default `3306`), `DB_NAME` (default `water_demand_db`), and `PORT` (default `8080`). For a managed MySQL server, set `DATABASE_URL` to its MySQL connection URL instead.
-7. Open a terminal at the project root, set the database environment variables, and run `go run ./cmd/server`. For PowerShell, for example:
+1. Install Go 1.22 or newer. Use either local PostgreSQL or a managed provider such as Neon.
+2. For local PostgreSQL on Ubuntu, install it with `sudo apt update` followed by `sudo apt install postgresql`.
+3. Start the service with `sudo systemctl start postgresql`. To have it start after computer restarts, run `sudo systemctl enable postgresql`.
+4. Create a role and database owned by that role. For example, open `sudo -u postgres psql` and run the SQL below, replacing the placeholder with a password you choose:
 
-   ```powershell
-   $env:DB_USERNAME = "water_app"
-   $env:DB_PASSWORD = "your chosen password"
+        ```sql
+        CREATE ROLE water_app LOGIN PASSWORD 'choose-a-local-password';
+        CREATE DATABASE water_demand_db OWNER water_app;
+        ```
+
+5. The backend accepts a PostgreSQL `DATABASE_URL`. For local PostgreSQL, the connection can also be configured with `DB_USERNAME`, `DB_PASSWORD`, `DB_HOST` (default `127.0.0.1`), `DB_PORT` (default `5432`), `DB_NAME` (default `water_demand_db`), and `DB_SSLMODE` (default `disable`). `PORT` defaults to `8080`.
+6. For a managed database such as Neon, set `DATABASE_URL` to its PostgreSQL connection URL in the environment. Keep the password out of Git and screenshots.
+7. Open a terminal at the project root, set the database environment, and run `go run ./cmd/server`. In bash, a password-protected URL can be entered without echoing it or saving it in shell history:
+
+        ```bash
+        read -rsp "PostgreSQL DATABASE_URL: " DATABASE_URL; printf '\n'; export DATABASE_URL
    go run ./cmd/server
    ```
 
-8. The Go backend creates the tables and adds sample rows when the usage table is empty.
+8. The Go backend creates its tables and adds sample rows when the usage table is empty.
 9. Run the backend unit tests from the project root with `go test ./...`.
-
-To create a local MySQL user with a password, enter `sudo mysql`, then run these statements in the MySQL console (replace `choose_a_local_password` with a password you choose):
-
-```sql
-CREATE USER 'water_app'@'localhost' IDENTIFIED BY 'choose_a_local_password';
-GRANT ALL PRIVILEGES ON water_demand_db.* TO 'water_app'@'localhost';
-EXIT;
-```
-
-Then provide that same password as the `DB_PASSWORD` environment variable when starting the backend. Do not save your real password in Git or share it in screenshots.
 
 ## 18. Frontend Setup
 
@@ -214,26 +209,26 @@ Then provide that same password as the `DB_PASSWORD` environment variable when s
 
 ## 19. Deploy to Vercel
 
-The repository includes Vercel configuration for the Vite frontend and Go serverless API functions. The API requires a **reachable, persistent MySQL database**; Vercel's temporary function filesystem is not a database. Create a MySQL database with a provider that accepts connections from Vercel, and ensure its network access rules allow the deployment to connect. Do not use `localhost` as the deployed database host.
+The repository includes Vercel configuration for the Vite frontend and Go serverless API functions. The API requires a **reachable, persistent PostgreSQL database**; Vercel's temporary function filesystem is not a database. Use a provider that accepts connections from Vercel and ensure its network access rules allow the deployment to connect. Do not use `localhost` as the deployed database host.
 
 1. Either push this project to GitHub and import that repository in Vercel, or deploy from the project root using `npx vercel@latest login` followed by `npx vercel@latest`.
 2. Keep the Vercel project **Root Directory** set to the repository root (not `frontend` or `backend`).
-3. In the Vercel project settings, add `DATABASE_URL` for Production and any Preview environments where you want the API to work. Use the MySQL URL supplied by your database provider, with the password URL-encoded if it contains special characters. The Go API enables TLS automatically on Vercel; set `?tls=false` only if your database provider explicitly requires unencrypted connections.
+3. In the Vercel project settings, add `DATABASE_URL` for Production and any Preview environments where you want the API to work. Use the PostgreSQL URL supplied by your database provider, with the password URL-encoded if it contains special characters. Use the provider's TLS-required URL for remote databases.
 4. Deploy. `vercel.json` builds `frontend` and publishes `frontend/dist`; the existing `/api/*` routes are handled by the Go functions in `api/`. The frontend currently uses in-page navigation and does not require an SPA catch-all rewrite. For CLI deployments, run `npx vercel@latest --prod` after linking the project and configuring its environment variables.
-5. Check the deployment's Function logs if an API request returns `503`. The message indicates that the external MySQL connection or its configuration needs attention.
+5. Check the deployment's Function logs if an API request returns `503`. The message indicates that the external PostgreSQL connection or its configuration needs attention.
 
 `VITE_API_BASE_URL` is optional: by default the frontend calls `/api` on the same Vercel deployment. To override it, set this variable to a full API base URL ending in `/api` and configure that API host to allow the Vercel site's origin.
 
 ## 20. How to Demonstrate to Faculty
 
-1. Start MySQL.
-2. Start the Go backend from the `backend` folder.
+1. Start PostgreSQL, or configure the managed PostgreSQL `DATABASE_URL`.
+2. Start the Go backend from the project root.
 3. Start React from the `frontend` folder.
 4. Open `http://localhost:5173`.
 5. **Rishi:** Introduce the water demand problem and explain that the prototype uses public location reports and local sample records.
 6. **Rishi:** Show Overview. Select Muzaffarpur, India, Mumbai, and one other location. Point out the 2–5 dated chart records and the unit/source measure. Mention that supply, capacity, access, and per-person availability are different indicators.
 7. **Rishi:** Open Water Usage, select a public location, and show the dated record table and source links. Then switch to “My local prototype records” and show the illustrative building records.
-8. **Umar:** Add a new local water usage record with date, litres, temperature, rainfall, and occupancy. Explain that it is stored in local MySQL.
+8. **Umar:** Add a new local water usage record with date, litres, temperature, rainfall, and occupancy. Explain that it is stored in PostgreSQL.
 9. **Umar:** Open Prediction and select Muzaffarpur or another public city. Enter forecast date, temperature, rainfall, and expected population.
 10. **Umar:** Generate the city daily demand estimate. Show litres/day, MLD, NORMAL/HIGH status, and conservation advice. Explain that the screen starts from a published population and 135 LPCD benchmark, with visible demonstration weather adjustments.
 11. **Umar:** Switch to “My local prototype records” and generate the saved-record regression prediction. Explain that this is a separate model using local historical building records.

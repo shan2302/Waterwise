@@ -32,7 +32,7 @@ function App() {
       setPredictions(predictionData)
       setLatest(predictionData[0] || null)
     } catch (requestError) {
-      setError(`${requestError.message}. Check that the backend and its MySQL database are available.`)
+      setError(`${requestError.message}. Check that the Go API and its PostgreSQL database are available.`)
     } finally { setLoading(false) }
   }, [])
 
@@ -138,7 +138,7 @@ function App() {
               <Field label="Occupancy (people)"><input type="number" required min="1" max="1000000" step="1" placeholder="e.g. 100" value={usageForm.occupancy} onChange={(e) => setUsageForm({ ...usageForm, occupancy: e.target.value })}/></Field>
               <div className="form-actions"><button className="primary-button" disabled={saving}>{saving ? 'Saving…' : 'Save record'}</button></div>
             </form></section><section className="panel data-note"><div className="note-icon">i</div><h3>About this data</h3><p>Sample records are included for demonstration. They are illustrative values, not physical measurements collected by the project team.</p><p>This prototype uses no sensors or external services.</p></section></div>
-            <section className="panel recent-panel"><div className="panel-heading"><div><h2>All usage records</h2><p>Records saved in the local MySQL database</p></div></div><UsageTable records={[...records].reverse()} showWeather/></section></> : <PublicLocationView location={selectedLocation} />}
+            <section className="panel recent-panel"><div className="panel-heading"><div><h2>All usage records</h2><p>Records saved in the local PostgreSQL database</p></div></div><UsageTable records={[...records].reverse()} showWeather/></section></> : <PublicLocationView location={selectedLocation} />}
           </>}
           {section === 'prediction' && <><div className="page-heading"><div><div className="eyebrow">DEMAND ESTIMATION</div><h1>Water demand prediction</h1><p>Estimate expected use with historical records and environmental inputs.</p></div></div>
             <LocationSelector value={selectedLocationId} onChange={setSelectedLocationId} description="Prediction data source" />
