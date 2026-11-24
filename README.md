@@ -1,0 +1,257 @@
+# AI-Based Water Demand Prediction and Conservation System
+
+## 1. Project Overview
+
+This project is a local web application for estimating future water demand. It combines saved water-use records with weather, occupancy, and date inputs. It then shows an estimated demand, a NORMAL or HIGH status, and a conservation suggestion.
+
+The system is a decision-support prototype. It does not control water supply. **This prototype does not require any physical hardware. It uses historical/sample data and runs locally on a computer.** The included records are sample data for demonstration, not measurements collected by the project team.
+
+The Overview has a location selector for India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, and Kolkata. Selecting a place updates the chart and summary cards. Each public location now shows at least two dated source records; most show three or more. The Water Usage page shows each period, value, measure, and its source link. Sources use different measures, including city supply, system capacity, estimated demand, household access, and per-person water availability. These public figures are separate from the building sample records and are not used by the prediction model.
+
+## 2. Environmental Problem
+
+The selected problem is excessive and difficult-to-plan water consumption. When demand is not anticipated, homes and institutions may use water inefficiently and may find it harder to plan conservation.
+
+## 3. Why Does This Problem Matter?
+
+Water is a limited natural resource. Unnecessary consumption and unpredictable demand can lead to wastage. Better prediction can help institutions and communities plan water use. A digital system can use historical data to estimate future demand and support conservation decisions.
+
+## 4. Proposed Digital Solution
+
+Our proposed digital solution is an AI/ML-based web application that uses historical water-consumption and environmental data to predict future water demand and display demand status and conservation recommendations.
+
+React provides the user interface. The Go backend provides REST APIs and application logic. MySQL stores historical consumption and prediction records. The prediction service processes historical records and the new inputs to estimate demand. The estimate is a transparent regression-based ML-style model; it is not deep learning.
+
+## 5. BCS508 Google Form Answers
+
+### Technology Used
+
+- **Artificial Intelligence (AI):** The system applies an automated data-based decision process to estimate demand and suggest conservation actions.
+- **Machine Learning (ML):** A simple regression model learns feature weights from saved historical records. It is a small educational model, not a claim of advanced or deep learning.
+- **Web Application:** A React website communicates with Go REST APIs.
+- **Data Analytics:** The dashboard calculates and displays consumption summaries and historical trends.
+
+### Why Does This Problem Matter?
+
+Water is a limited natural resource. Unnecessary consumption and unpredictable demand can lead to wastage. Better prediction can help institutions and communities plan water usage. A digital system can use historical data to estimate future demand and support conservation decisions.
+
+### Proposed Digital Solution
+
+An AI/ML-based web application that uses historical water-consumption and environmental data to predict future water demand and display demand status and conservation recommendations. This is our proposed solution. React provides the interface; Go provides REST APIs and application logic; MySQL stores historical consumption and predictions; and prediction logic processes the historical records and supplied inputs to produce predicted demand.
+
+### Input Data Required
+
+- Historical water consumption in litres
+- Date, including day of week and month/season
+- Temperature
+- Rainfall
+- Occupancy or population represented by the record
+
+Possible sources include public historical water-consumption datasets, government/open environmental datasets where applicable, weather datasets, and sample/seed records for this prototype. No physical sensor data is claimed or required. The prototype is designed to work without hardware.
+
+### How Does the System Work?
+
+**INPUT** — Historical water use, date, temperature, rainfall, and occupancy.
+
+↓
+
+**PROCESSING** — Validate and store data in MySQL; retrieve historical records; calculate statistics/features; fit a small regression model; estimate demand; compare it with the normal historical range.
+
+↓
+
+**OUTPUT** — Predicted water demand, NORMAL/HIGH status, historical consumption chart, and a conservation recommendation.
+
+### Expected Environmental Benefits
+
+- Helps users anticipate future water demand.
+- Helps identify periods of unusually high expected consumption.
+- Supports better water-resource planning.
+- Encourages reduction of unnecessary water use.
+- Can contribute to reducing water wastage through data-based decisions.
+
+### Developed System / Prototype / Architecture Link
+
+GitHub Repository: https://github.com/shan2302/Waterwise
+
+Local Prototype: Runs locally using React + Go + MySQL. The final Google Form link can point to the published GitHub repository or another accessible project artifact.
+
+## 6. Technologies Used
+
+- **React and Vite:** Build and serve the browser interface locally.
+- **Go:** Implements the backend application and REST endpoints.
+- **MySQL driver for Go:** Connects the backend to the local database.
+- **MySQL:** Stores records on the local computer in `water_demand_db`.
+- **AI/ML:** A small ordinary least-squares regression is fitted from available historical records for prediction.
+- **Data Analytics:** Summary statistics and a chart help users understand recorded consumption.
+
+## 7. Input Data
+
+Each water-use record contains its date, consumption in litres, temperature in °C, rainfall in mm, and occupancy count. A prediction request contains a future date and the expected temperature, rainfall, and occupancy. Day of week and month are derived from the date. Records represent a defined building/community scale; sample values are illustrative.
+
+## 8. Possible Data Sources
+
+- **Public datasets:** Public historical water-use records can replace or supplement the demonstration records.
+- **Weather/environment datasets:** Public weather and environmental datasets can provide temperature and rainfall inputs.
+- **Sample/seed data:** The app inserts clearly illustrative sample records when the database has no usage records. These make the prototype demonstrable without claiming field collection.
+- **Published location records:** India, Muzaffarpur, Delhi, Mumbai, Bengaluru, Srinagar, and Kolkata each show at least two sourced periods. The Water Usage page lists records with links to their sources. The measures differ by location and must not be compared as if they were all household consumption. These records are not training rows for the building-level prediction.
+
+Downloaded public CSV files are in the project `data/` folder:
+
+- `pune_daily_water_consumption_dec_2016.csv` and `pune_daily_water_consumption_dec_2017.csv`: Pune Municipal Corporation daily consumption totals in MLD, covering 31 days in each December. The source files also include title/header rows and summary rows (`TOTAL` and `AVERAGE`). [Dataset page and source details](https://data.opencity.in/dataset/water-consumption-in-pune) · [2016 CSV](https://data.opencity.in/dataset/70cf9161-860f-4172-a2fb-b11bb94094f9/resource/147a79a2-1cc5-40c9-ab25-09a38dabb8e7/download/2d32f493-71d6-431c-9b2c-098b9a8182b2.csv) · [2017 CSV](https://data.opencity.in/dataset/70cf9161-860f-4172-a2fb-b11bb94094f9/resource/ce853c95-0686-4a5d-ac76-bcd05758092d/download/71eca138-6e75-4fae-89f3-2a6d119eabf3.csv).
+- `chennai_zone_water_supply_consumption_jan_2019.csv`: 15 Chennai zones with reported supply capacity and domestic water consumption in litres/day. This is a zone-level snapshot for January 2019, not a daily time series. [Dataset page](https://data.opencity.in/dataset/chennai-water-supply/resource/1c22bdb5-e9e0-4246-8248-740bbbb9945d) · [CSV download](https://data.opencity.in/dataset/ce53de1e-5a35-494f-a7f4-132c0043c5c3/resource/1c22bdb5-e9e0-4246-8248-740bbbb9945d/download/1c288ca9-d0ec-4640-b93c-6edcc841d2cf.csv). The source listing does not specify a license, so this local copy is not included in the public repository pending permission or license clarification.
+
+These are real published public records, but they are not imported into the app's MySQL training records yet. The Pune files are city/utility-scale MLD values, while the current local prediction model expects building-scale litres plus weather and occupancy fields. Keeping those scales separate avoids presenting a mixed-scale prediction as valid. The city prediction screen currently uses its visible population and service-benchmark scenario method.
+
+The app also shows a separate **estimated domestic planning baseline** for each location. It multiplies the Census 2011 population figure by the CPHEEO planning benchmark of 135 litres per person per day (LPCD), then converts the result to MLD. For example, Muzaffarpur's 2011 municipal population gives about 47.85 MLD. These are population-based planning estimates, not observed daily consumption, actual municipal supply, or AI/ML forecasts. Population scopes vary: some figures are municipal corporation populations, some are urban agglomerations, and India's figure is its 2011 urban population. The cards link to population and benchmark sources and label the scope.
+
+Published figures are linked to the [Central Water Commission estimates reported by the Ministry of Jal Shakti](https://www.pib.gov.in/newsite/PrintRelease.aspx?lang=2&reg=48&relid=195633), a [Muzaffarpur water access study](https://marudhara.ac.in/wp-content/uploads/2021/12/Examining-acess-to-safe-drinking-water.pdf), the [AMRUT Muzaffarpur service plan](https://www.rcueslucknow.org/AMRUT/SLIPWaterBihar/Muzaffarpur.pdf), the [CAG audit of Delhi Jal Board](https://cag.gov.in/uploads/download_audit_report/2025/Delhi_PA-Report-on-3_DJB_English-069c2836793c603.23213132.pdf), a [Praja report citing BMC Environment Status Reports for Mumbai](https://www.praja.org/praja_docs/praja_downloads/Report%20on%20the%20Status%20of%20Civic%20Issues%20in%20Mumbai.pdf), an [IISc Bengaluru water situation report](https://wgbis.ces.iisc.ac.in/energy/water/paper/ETR114/section8.html), [Ministry of Jal Shakti reports for Srinagar](https://www.pib.gov.in/PressReleasePage.aspx?PRID=1681481) and a [J&K Jal Jeevan Survekshan report](https://www.jkpi.org/wp-content/uploads/2023/10/Inksight_AugSept_2023_compressed.pdf), and [Kolkata Municipal Corporation historical supply figures](https://www.kmc.gov.in/KMCPortal/jsp/IndiraGandhi.jsp). The fixed records are bundled with the frontend, so no internet API is needed to view them.
+
+Unit abbreviations used in those records: **MGD** means million gallons per day; **MLD** means million litres per day; and **TMC/year** means thousand million cubic feet per year. In Srinagar, 100% means the reported rural households were covered by functional household tap connections. It describes connection access, not water consumption or continuous service.
+
+## 9. Input → Processing → Output
+
+```text
+INPUT
+Historical usage + date + temperature + rainfall + occupancy
+        ↓
+PROCESSING
+Validate → save/retrieve with Go and MySQL → analyze history → fit regression → estimate demand
+        ↓
+OUTPUT
+Predicted litres + demand status + chart/statistics + conservation recommendation
+```
+
+## 10. System Architecture
+
+```text
+React (http://localhost:5173)
+        ↓ REST / JSON
+Go REST API (http://localhost:8080)
+        ↓
+Application logic
+        ↓
+Local MySQL (water_demand_db)
+
+Historical Data → Prediction Service → Prediction Result → React Dashboard
+```
+
+## 11. Database Design
+
+The `water_usage` table stores `id`, `usage_date`, `consumption_litres`, `temperature`, `rainfall`, and `occupancy`. The `predictions` table stores `id`, `prediction_date`, `predicted_demand_litres`, `demand_status`, `recommendation`, and `created_at`. The Go backend creates these tables if they do not already exist and adds sample rows when `water_usage` is empty.
+
+## 12. API Endpoints
+
+| Method | URL | Purpose |
+|---|---|---|
+| GET | `/api/water-usage` | List historical usage records. |
+| POST | `/api/water-usage` | Validate and add a usage record. |
+| GET | `/api/water-usage/summary` | Return total, average, highest, lowest, and record count. |
+| GET | `/api/predictions` | List generated predictions. |
+| POST | `/api/predictions` | Generate and save a prediction. |
+| GET | `/api/predictions/latest` | Return the newest prediction, or 404 if none exists. |
+
+## 13. Frontend
+
+The location selector is shared by Overview, Water Usage, and Prediction. Overview updates the chart and summary cards. For public locations, the app also displays a separate 135 LPCD population-based planning estimate with its formula, population scope, and source links. Water Usage lists the selected public records with period-specific source links, or lets the user view and add local building records. Prediction works for both local records and a selected public location. For a city, enter the forecast date, expected temperature, rainfall, and expected population to calculate daily demand for that location. The page displays litres/day, MLD, NORMAL/HIGH status, and conservation advice.
+
+## 14. Prediction Logic
+
+For local building predictions, the service uses saved records to fit an ordinary least-squares linear regression. It uses consumption as the value to estimate and features for temperature, rainfall, occupancy, month, and day of week. The submitted date and environmental values are passed through the fitted model. If there are too few records or the regression cannot be fitted, the service uses a clear historical-average baseline adjusted by occupancy and temperature. The result is kept non-negative.
+
+For a selected public city, the app calculates a daily scenario estimate from expected population × 135 LPCD. It adjusts that baseline using a simple, visible rule: 1% per °C above or below 25°C and −0.5% per mm of rain, with limits to keep the estimate bounded. These weather adjustments are demonstration assumptions, not values learned from daily city records. This makes a city-specific estimate usable while being clear that it is not a trained city ML forecast. The reported population and CPHEEO benchmark sources are linked on screen.
+
+Demand is HIGH when the estimate is above the historical average by more than 10%; otherwise it is NORMAL. This is a demonstration threshold, not a universal water-safety standard. More and better representative data can improve usefulness. No prediction is hardcoded.
+
+## 15. Environmental Benefits
+
+- Helps users anticipate future water demand.
+- Makes unusually high expected demand easier to notice.
+- Supports planning for water use.
+- Encourages conservation discussions and reduced unnecessary use.
+- Supports data-informed efforts to reduce wastage.
+
+## 16. How to Run Locally
+
+The backend needs Go 1.22 or newer and a running MySQL server. The frontend needs Node.js and npm. The API uses MySQL for durable storage.
+
+## 17. Backend Setup
+
+1. Install Go 1.22 or newer and MySQL Server.
+2. On Ubuntu, install MySQL Server from a terminal with `sudo apt update` followed by `sudo apt install mysql-server`.
+3. Start the service with `sudo systemctl start mysql`. To have it start after computer restarts, run `sudo systemctl enable mysql`.
+4. Check that it is running with `sudo systemctl status mysql`. It should show `active (running)`. Press `q` to leave the status view.
+5. Open the MySQL console with `sudo mysql` and create the database by entering `CREATE DATABASE water_demand_db;`. Then enter `EXIT;`.
+6. The backend uses a local account named `water_app` by default. Set `DB_USERNAME` and `DB_PASSWORD` in the environment; the password is not stored in the project. Also available are `DB_HOST` (default `127.0.0.1`), `DB_PORT` (default `3306`), `DB_NAME` (default `water_demand_db`), and `PORT` (default `8080`). For a managed MySQL server, set `DATABASE_URL` to its MySQL connection URL instead.
+7. Open a terminal at the project root, set the database environment variables, and run `go run ./cmd/server`. For PowerShell, for example:
+
+   ```powershell
+   $env:DB_USERNAME = "water_app"
+   $env:DB_PASSWORD = "your chosen password"
+   go run ./cmd/server
+   ```
+
+8. The Go backend creates the tables and adds sample rows when the usage table is empty.
+9. Run the backend unit tests from the project root with `go test ./...`.
+
+To create a local MySQL user with a password, enter `sudo mysql`, then run these statements in the MySQL console (replace `choose_a_local_password` with a password you choose):
+
+```sql
+CREATE USER 'water_app'@'localhost' IDENTIFIED BY 'choose_a_local_password';
+GRANT ALL PRIVILEGES ON water_demand_db.* TO 'water_app'@'localhost';
+EXIT;
+```
+
+Then provide that same password as the `DB_PASSWORD` environment variable when starting the backend. Do not save your real password in Git or share it in screenshots.
+
+## 18. Frontend Setup
+
+1. Install Node.js (which includes npm).
+2. Open another terminal and go to `frontend`.
+3. Run `npm install` once.
+4. Run `npm run dev`.
+5. Start the Go backend from the project root with `go run ./cmd/server`.
+6. Open `http://localhost:5173`. Vite proxies `/api` requests to `http://localhost:8080`.
+
+## 19. Deploy to Vercel
+
+The repository includes Vercel configuration for the Vite frontend and Go serverless API functions. The API requires a **reachable, persistent MySQL database**; Vercel's temporary function filesystem is not a database. Create a MySQL database with a provider that accepts connections from Vercel, and ensure its network access rules allow the deployment to connect. Do not use `localhost` as the deployed database host.
+
+1. Either push this project to GitHub and import that repository in Vercel, or deploy from the project root using `npx vercel@latest login` followed by `npx vercel@latest`.
+2. Keep the Vercel project **Root Directory** set to the repository root (not `frontend` or `backend`).
+3. In the Vercel project settings, add `DATABASE_URL` for Production and any Preview environments where you want the API to work. Use the MySQL URL supplied by your database provider, with the password URL-encoded if it contains special characters. The Go API enables TLS automatically on Vercel; set `?tls=false` only if your database provider explicitly requires unencrypted connections.
+4. Deploy. `vercel.json` builds `frontend` and publishes `frontend/dist`; the existing `/api/*` routes are handled by the Go functions in `api/`. The frontend currently uses in-page navigation and does not require an SPA catch-all rewrite. For CLI deployments, run `npx vercel@latest --prod` after linking the project and configuring its environment variables.
+5. Check the deployment's Function logs if an API request returns `503`. The message indicates that the external MySQL connection or its configuration needs attention.
+
+`VITE_API_BASE_URL` is optional: by default the frontend calls `/api` on the same Vercel deployment. To override it, set this variable to a full API base URL ending in `/api` and configure that API host to allow the Vercel site's origin.
+
+## 20. How to Demonstrate to Faculty
+
+1. Start MySQL.
+2. Start the Go backend from the `backend` folder.
+3. Start React from the `frontend` folder.
+4. Open `http://localhost:5173`.
+5. **Rishi:** Introduce the water demand problem and explain that the prototype uses public location reports and local sample records.
+6. **Rishi:** Show Overview. Select Muzaffarpur, India, Mumbai, and one other location. Point out the 2–5 dated chart records and the unit/source measure. Mention that supply, capacity, access, and per-person availability are different indicators.
+7. **Rishi:** Open Water Usage, select a public location, and show the dated record table and source links. Then switch to “My local prototype records” and show the illustrative building records.
+8. **Umar:** Add a new local water usage record with date, litres, temperature, rainfall, and occupancy. Explain that it is stored in local MySQL.
+9. **Umar:** Open Prediction and select Muzaffarpur or another public city. Enter forecast date, temperature, rainfall, and expected population.
+10. **Umar:** Generate the city daily demand estimate. Show litres/day, MLD, NORMAL/HIGH status, and conservation advice. Explain that the screen starts from a published population and 135 LPCD benchmark, with visible demonstration weather adjustments.
+11. **Umar:** Switch to “My local prototype records” and generate the saved-record regression prediction. Explain that this is a separate model using local historical building records.
+12. **Both:** State the limits: the prototype uses sample/public summary data, has no physical sensors, and does not control supply. The city scenario calculation is not trained on measured daily city records.
+
+## 21. Project Limitations
+
+- The included historical records are sample data; prediction quality depends on having enough representative data.
+- Published location figures have different reporting periods and indicators. For example, Muzaffarpur's 2009 reported supply and later system capacity are not identical measures; Bengaluru's figures are calculated demand estimates, with later projections; and Srinagar's records describe tap-water access rather than consumption. India’s data is per-capita water availability. Labels and notes explain these differences, and public values are not mixed into prediction training.
+- The prototype does not directly measure water through physical sensors.
+- Prediction accuracy depends on data quality and quantity.
+- It does not physically detect leaks or control water supply.
+- The simple regression is educational and should not be treated as an operational forecast.
+
+## 22. Future Improvements
+
+- Add larger, reliable real-world datasets.
+- Compare with more advanced ML models after obtaining suitable data.
+- Optional real-time sensor integration in a separately scoped future version.
+- Support records for multiple buildings or areas.
+- Improve high-demand/anomaly analysis.
