@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -16,7 +16,8 @@ var (
 	apiHandler     http.Handler
 )
 
-func serve(w http.ResponseWriter, r *http.Request, path string) {
+// Handler is the single Vercel serverless entry point for all /api/* routes.
+func Handler(w http.ResponseWriter, r *http.Request) {
 	if err := initialize(); err != nil {
 		log.Printf("initialize API function: %v", err)
 		w.Header().Set("Content-Type", "application/json")
@@ -28,12 +29,7 @@ func serve(w http.ResponseWriter, r *http.Request, path string) {
 		}
 		return
 	}
-
-	request := r.Clone(r.Context())
-	url := *r.URL
-	url.Path = path
-	request.URL = &url
-	apiHandler.ServeHTTP(w, request)
+	apiHandler.ServeHTTP(w, r)
 }
 
 func initialize() error {
